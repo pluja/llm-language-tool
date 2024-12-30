@@ -27,7 +27,7 @@ A lightweight, browser-based text processing tool powered by Large Language Mode
 
 Visit the  public instance hosted on Cloudflare Pages:
 
-[https://languagetool.pluja.dev](https://languagetool.pluja.dev)
+[https://langtool.pluja.dev](https://langtool.pluja.dev)
 
 ### Local Development
 
@@ -66,7 +66,7 @@ The tool supports various configuration options through the UI:
 Automate tasks using URL parameters:
 
 ```
-https://languagetool.pluja.dev?content=https://example.com&task=translate&output=spanish
+https://langtool.pluja.dev?content=https://example.com&task=translate&output=spanish
 ```
 
 Supported parameters:
