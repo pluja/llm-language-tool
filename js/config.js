@@ -20,7 +20,7 @@ class ConfigManager {
 
         this.shareConfigBtn = document.createElement('button');
         this.shareConfigBtn.id = 'shareConfig';
-        this.shareConfigBtn.className = 'bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 ml-2';
+        this.shareConfigBtn.className = 'w-full bg-gray-600 text-white py-1 my-1 rounded-lg hover:bg-gray-700 transition-all font-medium';
         this.shareConfigBtn.textContent = 'Share Settings';
         this.saveConfigBtn.parentNode.appendChild(this.shareConfigBtn);
 

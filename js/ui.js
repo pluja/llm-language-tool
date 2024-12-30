@@ -11,15 +11,14 @@ class UIManager {
         this.correctionOptions = document.getElementById('correctionOptions');
         this.processBtn = document.getElementById('processBtn');
         this.languageSelectors = document.querySelectorAll('.languageSelectors');
-        this.translateBtn = document.getElementById('translateBtn');
-        this.summarizeBtn = document.getElementById('summarizeBtn');
-        this.correctBtn = document.getElementById('correctBtn');
+        this.taskInputs = document.querySelectorAll('input[name="task"]');
     }
 
     bindEvents() {
-        this.translateBtn.addEventListener('click', () => this.updateUI('translate'));
-        this.summarizeBtn.addEventListener('click', () => this.updateUI('summarize'));
-        this.correctBtn.addEventListener('click', () => this.updateUI('correct'));
+        this.taskInputs.forEach(input => {
+            input.addEventListener('change', (e) => this.updateUI(e.target.value));
+        });
+
         this.processBtn.addEventListener('click', () => {
             textProcessor.processText(this.currentTask);
         });

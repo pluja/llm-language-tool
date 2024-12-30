@@ -5,140 +5,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.min.css">
-    <link rel="icon"
-            href="/icons/icon-192x192.webp">
+    <link rel="icon" href="/icons/icon-192x192.webp">
     <title>LLM Text Tool</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#155a82">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body class="bg-gray-100 text-gray-900">
-    <div id="loadingOverlay"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 min-h-screen">
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
         <div class="text-center flex flex-col items-center justify-center">
             <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mb-4"></div>
-            <p id="loadingMessage" class="text-white text-xl">Processing...</p>
+            <p id="loadingMessage" class="text-white text-xl font-medium">Processing...</p>
         </div>
     </div>
 
-    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 class="text-2xl font-bold mb-4">Settings</h2>
-
-            <div class="mb-1">
-                <h3 class="text-lg font-semibold mb-3">API Configuration</h3>
-                <label class="block mb-2 font-medium">OpenAI API Endpoint</label>
-                <input id="apiEndpoint" type="text" class="w-full p-2 border rounded-md mb-4"
-                    placeholder="https://api.openai.com/v1/chat/completions">
-                <label class="block mb-2 font-medium">API Key</label>
-                <input id="apiKey" type="text" class="w-full p-2 border rounded-md mb-4"
-                    placeholder="Your OpenAI API Key">
-                <label class="block mb-2 font-medium">Model ID</label>
-                <input id="modelId" type="text" class="w-full p-2 border rounded-md mb-1" placeholder="gpt-4-mini">
-                <small class="block mb-1">*Recommended: <i>Claude 3.5 Haiku</i>, <i>Gemini 2.0 Flash</i>, <i>Qwen2.5</i></small>
-            </div>
-
-            <small class="block mb-5 opacity-60">*Check out <a href="https://nano-gpt.com">nano-gpt</a> or <a href="https://ppq.ai">ppq.ai</a> for privacy-respecting multi-models via OpenAI compatible API.</small>
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl shadow-xl py-4 px-8 max-w-md w-full m-4">
+            <h2 class="text-2xl font-bold mb-6">Settings</h2>
 
             <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-3">Language Management</h3>
-                <div class="flex gap-2 mb-4">
-                    <input id="newLanguage" type="text" class="flex-grow p-2 border rounded-md"
-                        placeholder="Add new language">
-                    <button id="addLanguage"
-                        class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">Add</button>
-                </div>
-                <div id="languageList" class="max-h-40 overflow-y-auto">
+                <h3 class="text-lg font-semibold mb-4">API Configuration</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block mb-2 font-medium text-gray-700">OpenAI API Endpoint</label>
+                        <input id="apiEndpoint" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="https://api.openai.com/v1/chat/completions">
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium text-gray-700">API Key</label>
+                        <input id="apiKey" type="text" class="w-full p-2 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Your OpenAI API Key">
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium text-gray-700">Model ID</label>
+                        <input id="modelId" type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="gpt-4-mini">
+                        <small class="block mt-2 text-gray-600">*Recommended: <i>Claude 3.5 Haiku</i>, <i>Gemini 2.0 Flash</i>, <i>Qwen2.5</i></small>
+                    </div>
                 </div>
             </div>
 
-            <button id="saveConfig" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">Save</button>
+            <small class="block mb-6 text-gray-500">*Check out <a href="https://nano-gpt.com" class="text-blue-600 hover:underline">nano-gpt</a> or <a href="https://ppq.ai" class="text-blue-600 hover:underline">ppq.ai</a> for privacy-respecting multi-models via OpenAI compatible API.</small>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-4">Language Management</h3>
+                <div class="flex gap-3 mb-4">
+                    <input id="newLanguage" type="text" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Add new language">
+                    <button id="addLanguage" class="bg-green-500 text-white px-6 rounded-lg hover:bg-green-600 transition-all">Add</button>
+                </div>
+                <div id="languageList" class="max-h-40 overflow-y-auto rounded-lg border border-gray-200"></div>
+            </div>
+
+            <button id="saveConfig" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all font-medium">Save</button>
         </div>
     </div>
 
-    <div class="container mx-auto py-8">
-        <div class="bg-white shadow-md rounded-md p-6">
-            <button id="editConfigBtn"
-                class="mb-4 rounded bg-blue-700 text-white font-bold hover:bg-blue-600 cursor-pointer py-2 px-2.5">
-                ⚙️ Settings
+    <div class="container mx-auto px-4 py-12 max-w-4xl">
+        <div class="bg-white shadow-lg rounded-2xl p-8">
+            <div class="flex justify-between items-center mb-8">
+                <button id="editConfigBtn" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                    <span>⚙️</span>
+                    <span class="font-medium">Settings</span>
             </button>
-            <h1 class="text-2xl font-bold mb-4 text-center">🤖 LLM Text Tool </h1>
-            <textarea id="inputText" rows="6" class="w-full p-3 border rounded-md mb-4"
-                placeholder="Paste website URL or text here..."></textarea>
+                <h1 class="text-3xl font-bold text-gray-800">🤖 LLM Text Tool</h1>
+        </div>
 
-            <div class="flex gap-4 mb-4">
-                <div class="w-full languageSelectors hidden">
-                    <label class="block mb-2 font-medium">Input Language</label>
-                    <select id="inputLanguage" class="w-full p-2 border rounded-md">
+            <textarea id="inputText" rows="6" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all mb-6" placeholder="Paste website URL or text here..."></textarea>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 languageSelectors hidden">
+                <div>
+                    <label class="block mb-2 font-medium text-gray-700">Input Language</label>
+                    <select id="inputLanguage" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                         <option value="auto">Auto Detect</option>
                     </select>
+        </div>
+                <div>
+                    <label class="block mb-2 font-medium text-gray-700">Output Language</label>
+                    <select id="outputLanguage" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"></select>
+    </div>
+            </div>
+
+            <div id="correctionOptions" class="space-y-4 mb-6 hidden">
+                <div>
+                    <label class="block mb-2 font-medium text-gray-700">Correction Level</label>
+                    <select id="correctionLevel" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <option value="low">Light (Minor Changes)</option>
+                        <option value="medium">Medium (Moderate Changes)</option>
+                        <option value="high">High (Major Changes)</option>
+                    </select>
                 </div>
-                <div class="w-full languageSelectors hidden">
-                    <label class="block mb-2 font-medium">Output Language</label>
-                    <select id="outputLanguage" class="w-full p-2 border rounded-md">
+                <div>
+                    <label class="block mb-2 font-medium text-gray-700">Style</label>
+                    <select id="correctionStyle" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <option value="formal">Formal</option>
+                        <option value="informal">Informal</option>
+                        <option value="academic">Academic</option>
+                        <option value="business">Business</option>
                     </select>
                 </div>
             </div>
 
-            <div id="correctionOptions" class="mb-4 hidden">
-                <label class="block mb-2 font-medium">Correction Level</label>
-                <select id="correctionLevel" class="w-full p-2 border rounded-md mb-2">
-                    <option value="low">Light (Minor Changes)</option>
-                    <option value="medium">Medium (Moderate Changes)</option>
-                    <option value="high">High (Major Changes)</option>
-                </select>
-                <label class="block mb-2 font-medium">Style</label>
-                <select id="correctionStyle" class="w-full p-2 border rounded-md">
-                    <option value="formal">Formal</option>
-                    <option value="informal">Informal</option>
-                    <option value="academic">Academic</option>
-                    <option value="business">Business</option>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="block mb-2 font-medium">Task</label>
-                <div class="flex gap-2">
-                    <button id="translateBtn"
-                        class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
-                        ✨ Translate
-                    </button>
-                    <button id="summarizeBtn"
-                        class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-                        📝 Summarize
-                    </button>
-                    <button id="correctBtn"
-                        class="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700">
-                        ✓ Correct
-                    </button>
+            <div class="mb-6">
+                <label class="block mb-3 font-medium text-gray-700">Task</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label class="relative group">
+                        <input type="radio" name="task" value="translate" class="peer absolute opacity-0">
+                        <div class="flex items-center justify-center gap-2 p-2 rounded-xl border-2 border-gray-200 
+                                    cursor-pointer transition-all duration-200
+                                    hover:border-green-200 hover:bg-green-50
+                                    peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:ring-2 peer-checked:ring-green-500">
+                            <span class="text-green-600 font-medium text-lg">✨ Translate</span>
+                        </div>
+                    </label>
+                    <label class="relative group">
+                        <input type="radio" name="task" value="summarize" class="peer absolute opacity-0">
+                        <div class="flex items-center justify-center gap-2 p-2 rounded-xl border-2 border-gray-200 
+                                    cursor-pointer transition-all duration-200
+                                    hover:border-blue-200 hover:bg-blue-50
+                                    peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:ring-2 peer-checked:ring-blue-500">
+                            <span class="text-blue-600 font-medium text-lg">📝 Summarize</span>
+                        </div>
+                    </label>
+                    <label class="relative group">
+                        <input type="radio" name="task" value="correct" class="peer absolute opacity-0">
+                        <div class="flex items-center justify-center gap-2 p-2 rounded-xl border-2 border-gray-200 
+                                    cursor-pointer transition-all duration-200
+                                    hover:border-purple-200 hover:bg-purple-50
+                                    peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:ring-2 peer-checked:ring-purple-500">
+                            <span class="text-purple-600 font-medium text-lg">✓ Correct</span>
+                        </div>
+                    </label>
                 </div>
             </div>
 
-            <button id="processBtn" class="w-full bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600 hidden">
+            <button id="processBtn" class="w-full bg-yellow-500 text-white py-4 rounded-xl hover:bg-yellow-600 transition-all font-medium text-lg hidden">
                 Process Text
             </button>
         </div>
 
         <div id="resultContainer" class="mt-8 hidden">
             <h2 class="text-2xl font-bold mb-4">Result</h2>
-            <div class="bg-gray-100 p-4 rounded-md overflow-auto">
+            <div class="bg-white shadow-lg rounded-2xl p-8">
                 <div id="resultContent" class="prose prose-sm sm:prose lg:prose-lg xl:prose-xl mx-auto"></div>
             </div>
         </div>
     </div>
-
-    <footer class="text-center py-4 text-gray-600">
-        <a class="underline" href="https://github.com/pluja/llm-language-tool">Open Source</a> project by <a class="underline" href="https://pluja.dev">pluja</a>
+    <footer class="text-center py-6 text-gray-600">
+        <a class="hover:text-gray-900 transition-colors" href="https://github.com/pluja/llm-language-tool">Open Source</a> project by <a class="hover:text-gray-900 transition-colors" href="https://pluja.dev">pluja</a>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/config.js"></script>
     <script src="js/languageManager.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/textProcessor.js"></script>
     <script src="js/main.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

@@ -5,7 +5,7 @@
     "@tailwindcss/typography": "^0.5.15"
   },
   "scripts": {
-    "watch:css": "tailwindcss -i ./css/input.css -o ./css/style.css --watch",
+    "watch:css": "tailwindcss -i ./css/input.css -o ./css/style.min.css --watch",
     "build:css": "tailwindcss -i ./css/input.css -o ./css/style.min.css --minify"
   }
 }
