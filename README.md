@@ -45,7 +45,7 @@ Add your API Key for an OpenAI-compatible API (ollama, ppq.ai, nano-gpt.com, lla
   - URL parameter support for automation
 
 
-## Local Development / Deploy
+## Self-Hosting / Local Development
 
 1. Clone the repository:
    ```bash
