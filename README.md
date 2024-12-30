@@ -62,8 +62,11 @@ Add your API Key for an OpenAI-compatible API (ollama, ppq.ai, nano-gpt.com, lla
    # Using Python (recommended)
    python3 -m http.server 8000
 
-   # Using Docker
+   # Or Using Docker
    docker run --rm -p 8000:8000 -v $(pwd):/srv --workdir /srv python:3-alpine python -m http.server 8000 --bind 0.0.0.0
+
+   # Or Using Docker-Compose
+   docker compose up -d
    ```
 
 4. Open your browser and visit `http://localhost:8000`
