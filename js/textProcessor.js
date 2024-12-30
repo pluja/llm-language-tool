@@ -4,6 +4,75 @@ class TextProcessor {
         this.resultContainer = document.getElementById('resultContainer');
         this.resultContent = document.getElementById('resultContent');
         this.resultsStack = [];
+        this.resultsMarkdown = [];
+        this.isShareView = window.location.hash.includes('?share');
+
+        if (this.isShareView) {
+            this.setupShareView();
+        }
+        this.checkUrlHash();
+    }
+
+    setupShareView() {
+        // Hide the config modal
+        const modal = document.getElementById('modal');
+        if (modal) modal.remove();
+
+        // Hide the edit config button
+        const editConfigBtn = document.getElementById('editConfigBtn');
+        if (editConfigBtn) editConfigBtn.remove();
+
+        // Replace the entire container content
+        document.querySelector('.container').innerHTML = `
+            <div class="bg-white shadow-lg rounded-2xl p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <button id="viewFullApp" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                        View Full App
+                    </button>
+                    <h1 class="text-3xl font-bold text-gray-800">🤖 Shared Content</h1>
+                </div>
+                <div id="resultContent" class="prose lg:prose-lg">
+                </div>
+            </div>`;
+
+        // Remove footer in share view
+        const footer = document.querySelector('footer');
+        if (footer) footer.remove();
+
+        // Reassign resultContent since we replaced the DOM
+        this.resultContent = document.getElementById('resultContent');
+
+        // Add event listener for the "View Full App" button
+        document.getElementById('viewFullApp').addEventListener('click', () => {
+            const baseUrl = window.location.href.split('#')[0];
+            const hash = window.location.hash.replace('?share', '');
+            // Force page reload by setting window.location directly
+            window.location.href = baseUrl + hash;
+            // Force reload to ensure clean state
+            window.location.reload();
+        });
+    }
+
+    checkUrlHash() {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+            try {
+                // Remove the ?share parameter if present
+                const encodedContent = hash.replace('?share', '');
+                const decodedContent = this.decodeShareContent(encodedContent);
+                this.displayResult(decodedContent, true);
+            } catch (error) {
+                console.error('Error decoding shared content:', error);
+            }
+        }
+    }
+
+    encodeShareContent(text) {
+        return btoa(encodeURIComponent(text));
+    }
+
+    decodeShareContent(encoded) {
+        return decodeURIComponent(atob(encoded));
     }
 
     async processText(task, content = null) {
@@ -90,9 +159,18 @@ class TextProcessor {
     }
 
     displayResult(markdownOutput, isNewResult = true) {
+        if (this.isShareView) {
+            // In share view, just display the content without any buttons
+            this.resultContent.innerHTML = marked.parse(markdownOutput);
+            return;
+        }
+
         const resultHtml = `
-            <div class="result-item bg-white shadow-lg rounded-2xl p-8 mb-6">
+            <div class="result-item bg-white shadow-lg rounded-2xl p-8 mb-6" data-result-index="${isNewResult ? 0 : this.resultsStack.length}">
                 <div class="flex gap-3 mb-4 justify-end">
+                    <button class="action-btn bg-yellow-500 text-white px-2 py-1 text-sm rounded-lg hover:bg-yellow-600 transition-all" data-action="share">
+                        Share
+                    </button>
                     <button class="action-btn bg-blue-500 text-white px-2 py-1 text-sm rounded-lg hover:bg-blue-600 transition-all" data-action="work">
                         Work with result
                     </button>
@@ -109,11 +187,10 @@ class TextProcessor {
             </div>`;
 
         if (isNewResult) {
-            // Add new result to the stack
             this.resultsStack.unshift(resultHtml);
+            this.resultsMarkdown.unshift(markdownOutput);
         }
 
-        // Display all results
         this.resultContent.innerHTML = this.resultsStack.join('');
         this.resultContainer.classList.remove('hidden');
         this.bindResultActions();
@@ -125,20 +202,27 @@ class TextProcessor {
             btn.addEventListener('click', async (e) => {
                 const action = e.target.dataset.action;
                 const resultItem = e.target.closest('.result-item');
-                const resultContent = resultItem.querySelector('.result-content');
-                const plainText = resultContent.textContent.trim();
+                const resultIndex = parseInt(resultItem.dataset.resultIndex);
 
                 switch (action) {
+                    case 'share':
+                        const markdownContent = this.resultsMarkdown[resultIndex];
+                        const encodedContent = this.encodeShareContent(markdownContent);
+                        // Always use the simple share URL
+                        const shareUrl = `${window.location.origin}${window.location.pathname}#${encodedContent}?share`;
+                        navigator.clipboard.writeText(shareUrl);
+                        e.target.textContent = 'Copied!';
+                        setTimeout(() => e.target.textContent = 'Share', 2000);
+                        break;
                     case 'work':
-                        this.inputText.value = plainText;
+                        this.inputText.value = this.resultsMarkdown[resultIndex];
                         this.inputText.focus();
                         break;
                     case 'summarize':
-                        await this.processText('summarize', plainText);
+                        await this.processText('summarize', this.resultsMarkdown[resultIndex]);
                         break;
                     case 'explain':
-                        // Add 'explain' to buildPrompt's supported tasks
-                        await this.processText('explain', plainText);
+                        await this.processText('explain', this.resultsMarkdown[resultIndex]);
                         break;
                 }
             });

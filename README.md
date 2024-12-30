@@ -15,10 +15,15 @@ A lightweight, browser-based text processing tool powered by Large Language Mode
   - Configure your own LLM endpoints and API keys
   - No data stored or transmitted to third parties (other than your LLM providers, which can be local)
 
-- **Settings Management**
+- **Sharing**
+  - Share your results with a clean, distraction-free view
+    - Generate shareable URLs for your processed content
+    - Recipients see a simplified interface without tooling
+    - Easy switch between simple view and full application
+    - Base64 encoded content for sharing
   - Share configurations across devices via URL
     - Share language preferences and API configurations
-    - Export/Import settings using links
+    - Export/Import settings using a URL
     - Base64 encoded settings for secure sharing
 
 - **Developer Friendly**
@@ -31,7 +36,7 @@ A lightweight, browser-based text processing tool powered by Large Language Mode
 
 ### Using the Public Instance
 
-Visit the  public instance hosted on Cloudflare Pages:
+Visit the public instance hosted on Cloudflare Pages:
 
 [https://langtool.pluja.dev](https://langtool.pluja.dev)
 
@@ -83,6 +88,16 @@ The shared configuration includes:
 - Model ID
 - Custom language list
 
+### Sharing Results
+
+Share your processed content with others:
+
+1. Process any text using the available tools
+2. Click the "Share" button on the result
+3. A URL will be copied to your clipboard
+4. Recipients will see a clean, simplified view of the content
+5. They can access the full application via the "View Full App" button
+
 ## 🔍 URL Parameters
 
 Automate tasks using URL parameters:
@@ -94,8 +109,9 @@ https://langtool.pluja.dev?content=https://example.com&task=translate&output=spa
 Supported parameters:
 - `content`: Text or URL to process
 - `task`: Operation to perform (`translate` or `summarize`)
-- `output`: Target language or output format
+- `output`: Target language, only used with `translate` task
 - `config`: Base64 encoded configuration (automatically generated via Share Settings)
+- `#<base64-content>?share`: Share view with encoded content (automatically generated via Share button)
 
 ## 🛠️ Technical Stack
 
