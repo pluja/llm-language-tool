@@ -1,49 +1,100 @@
-# llm-language-tool
+# LLM Language Tool 🌐
 
-This is a simple tool that allows you to work with text via LLMs. Here's the feature list:
+A lightweight, browser-based text processing tool powered by Large Language Models (LLMs). Process, translate, and analyze text directly in your browser without any server dependencies.
 
-- Paste a text to work with it, or paste a URL to fetch and work with its content
-- Translate text from and to any languages
-- Summarize and correct texts
-- Explain and summarize translations
-- Use your endpoint and API keys. Can work 100% locally.
-- There is no backend, all happens on the client side via JS. It has no dependencies, it's pure JS and HTML.
+## ✨ Features
 
-## Public instance
+- **Text Processing**
+  - Process text directly from input or fetch from URLs
+  - Translation between multiple languages
+  - Text summarization and correction
+  - Translation explanations and summaries
 
-A public instance is hosted with Cloudflare Pages:
+- **Privacy & Flexibility**
+  - 100% client-side processing
+  - Configure your own LLM endpoints and API keys
+  - No data stored or transmitted to third parties (other than your LLM providers, which can be local)
 
-https://llm-language-tool.pages.dev
+- **Developer Friendly**
+  - Pure JavaScript and HTML implementation
+  - Zero runtime dependencies
+  - Modern UI with Tailwind CSS
+  - URL parameter support for automation
 
-## Run locally
+## 🚀 Quick Start
 
-1. Clone this repo:
+### Using the Public Instance
+
+Visit the  public instance hosted on Cloudflare Pages:
+
+[https://llmlt.pluja.dev](https://llmlt.pluja.dev)
+
+### Local Development
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/pluja/llm-language-tool.git
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd llm-language-tool
+   ```
+
+3. Start a local server:
+   ```bash
+   # Using Python (recommended)
+   python3 -m http.server 8000
+
+   # Using Docker
+   docker run --rm -p 8000:8000 -v $(pwd):/srv --workdir /srv python:3-alpine python -m http.server 8000 --bind 0.0.0.0
+   ```
+
+4. Open your browser and visit `http://localhost:8000`
+
+## 🔧 Configuration
+
+The tool supports various configuration options through the UI:
+- LLM endpoint configuration
+- API key management
+- Language model
+- Language preferences
+- UI customization
+
+## 🔍 URL Parameters
+
+Automate tasks using URL parameters:
 
 ```
-git clone https://github.com/pluja/llm-language-tool.git
+https://llmlt.pluja.dev?content=https://example.com&task=translate&output=spanish
 ```
 
-2. Navigate into the folder: `cd llm-language-tool`
+Supported parameters:
+- `content`: Text or URL to process
+- `task`: Operation to perform (`translate` or `summarize`)
+- `output`: Target language or output format
 
-3. Run it via a simple python3 http server:
+## 🛠️ Technical Stack
 
-```
-python3 -m http.server 8000
-```
+- **Frontend**: Vanilla JavaScript and HTML
+- **Styling**: Tailwind CSS with plugins
 
-or via docker:
+## 👥 Contributing
 
-```
-docker run --rm -p 8000:8000 -v $(pwd):/srv --workdir /srv python:3-alpine python -m http.server 8000 --bind 0.0.0.0
-```
+Contributions are welcome! This project was initially created with the help of LLMs and has room for improvements and new features.
 
-## Contribute
+To contribute:
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
 
-Contributions are very welcome, this is a very simple version I made in a few hours with the help of LLMs. This can be futher improved with more features and better UI. For now, this is my version, but feel free to open a PR!
+## 💡 Inspiration
 
-## Inspired by
+This project draws inspiration from:
+- [Kagi Translate](https://translate.kagi.com)
+- [Jina AI](https://r.jina.ai)
 
-Here are some resources that inspired this project:
+## 📄 License
 
-- https://translate.kagi.com
-- https://r.jina.ai
+MIT
