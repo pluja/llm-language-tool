@@ -15,6 +15,12 @@ A lightweight, browser-based text processing tool powered by Large Language Mode
   - Configure your own LLM endpoints and API keys
   - No data stored or transmitted to third parties (other than your LLM providers, which can be local)
 
+- **Settings Management**
+  - Share configurations across devices via URL
+    - Share language preferences and API configurations
+    - Export/Import settings using links
+    - Base64 encoded settings for secure sharing
+
 - **Developer Friendly**
   - Pure JavaScript and HTML implementation
   - Zero runtime dependencies
@@ -61,6 +67,22 @@ The tool supports various configuration options through the UI:
 - Language preferences
 - UI customization
 
+### Sharing Settings
+
+You can easily share your configuration with other devices or users:
+
+1. Click the Settings button (⚙️)
+2. Click "Share Settings" in the modal
+3. A URL containing your encoded settings will be copied to your clipboard
+4. Share this URL or save it for later use
+5. When opened, the URL will automatically import all settings you configured
+
+The shared configuration includes:
+- API endpoint
+- API key
+- Model ID
+- Custom language list
+
 ## 🔍 URL Parameters
 
 Automate tasks using URL parameters:
@@ -73,6 +95,7 @@ Supported parameters:
 - `content`: Text or URL to process
 - `task`: Operation to perform (`translate` or `summarize`)
 - `output`: Target language or output format
+- `config`: Base64 encoded configuration (automatically generated via Share Settings)
 
 ## 🛠️ Technical Stack
 
