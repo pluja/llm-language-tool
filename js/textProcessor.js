@@ -29,7 +29,7 @@ class TextProcessor {
                     <button id="viewFullApp" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
                         View Full App
                     </button>
-                    <h1 class="text-3xl font-bold text-gray-800">🤖 Shared Content</h1>
+                    <h1 class="text-xl font-bold text-gray-800">Shared Content</h1>
                 </div>
                 <div id="resultContent" class="prose lg:prose-lg">
                 </div>
