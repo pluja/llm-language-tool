@@ -6,8 +6,8 @@ This is a simple tool that allows you to work with text via LLMs. Here's the fea
 - Translate text from and to any languages
 - Summarize and correct texts
 - Explain and summarize translations
-
-There is no backend, all happens on the client side via JS. It has no dependencies, it's pure JS and HTML.
+- Use your endpoint and API keys. Can work 100% locally.
+- There is no backend, all happens on the client side via JS. It has no dependencies, it's pure JS and HTML.
 
 ## Public instance
 
