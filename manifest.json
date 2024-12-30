@@ -1,0 +1,23 @@
+{
+    "name": "LLM LangTool",
+    "short_name": "LangTool",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#155a82",
+    "description": "Text and language processing application",
+    "icons": [
+        {
+            "src": "icons/icon-192x192.webp",
+            "sizes": "192x192",
+            "type": "image/webp",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512x512.webp",
+            "sizes": "512x512",
+            "type": "image/webp",
+            "purpose": "any maskable"
+        }
+    ]
+}
