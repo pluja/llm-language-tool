@@ -25,7 +25,10 @@ Add your API Key for an OpenAI-compatible API (ollama, ppq.ai, nano-gpt.com, lla
 - **Privacy & Flexibility**
   - 100% client-side processing
   - Configure your own LLM endpoints and API keys
-  - No data stored or transmitted to third parties (other than your LLM providers, which can be local)
+  - Data Privacy & Security:
+    - All operations occur client-side - your API keys and queries never leave your browser
+    - Queries are sent directly to your preferred LLM provider (supports self-hosted models with openai-compatible backends)
+    - Sharing functionality uses [PocketJSON](https://pocketjson.pluja.dev) (optional, can be self-hosted)
 
 - **Sharing**
   - Share your results with a clean, distraction-free view
