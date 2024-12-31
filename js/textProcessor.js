@@ -1,5 +1,7 @@
 class TextProcessor {
     constructor() {
+        // Add CACHE_NAME as a class property
+        this.CACHE_NAME = 'lang-processor-cache';
         this.inputText = document.getElementById('inputText');
         this.resultContainer = document.getElementById('resultContainer');
         this.resultContent = document.getElementById('resultContent');
@@ -41,8 +43,22 @@ class TextProcessor {
             e.preventDefault();
             const newHash = window.location.hash.replace('?share', '');
             window.location.hash = newHash;
-            // Force a clean reload
-            await caches.delete(CACHE_NAME);
+
+            try {
+                // Clear cache and force reload
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                if ('caches' in window) {
+                    await caches.delete(this.CACHE_NAME);
+                }
+            } catch (error) {
+                console.warn('Cache clearing failed:', error);
+            }
+
             window.location.reload(true);
         });
     }
@@ -112,10 +128,24 @@ class TextProcessor {
 
         try {
             if (hash.startsWith('share=')) {
+                try {
+                    // Only try to clear cache if it's available
+                    if ('caches' in window) {
+                        const cache = await caches.open(this.CACHE_NAME);
+                        // Only try to delete if it's a valid cache URL
+                        if (window.location.href.startsWith('http')) {
+                            await cache.delete(window.location.href);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Cache operation failed:', error);
+                }
+
                 const parts = hash.split('?')[0];
                 const [shareId, endpoint] = parts.replace('share=', '').split('@');
                 const decodedEndpoint = endpoint ? decodeURIComponent(endpoint) : null;
                 const content = await this.getGistContent(shareId, decodedEndpoint);
+
                 if (content) {
                     this.displayResult(content, true);
                     if (this.isShareView) {

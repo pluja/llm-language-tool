@@ -1,5 +1,5 @@
-const APP_VERSION = '0.1.0'; // Update this when you make changes
-const CACHE_NAME = `lang-processor-${APP_VERSION}`;
+const APP_VERSION = '0.1.1';
+const CACHE_NAME = 'lang-processor-cache';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -24,41 +24,71 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Check if the request URL is valid for caching
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   // Don't cache API requests
   if (event.request.url.includes('/api/')) {
     return event.respondWith(fetch(event.request));
   }
 
-  // For navigation requests (HTML documents), use network-first strategy
+  // For navigation requests (HTML documents), always go to network first
   if (event.request.mode === 'navigate') {
     return event.respondWith(
       fetch(event.request)
         .then(response => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
+          // Don't cache error responses
+          if (!response.ok) {
+            throw new Error('Navigation fetch failed');
+          }
+          try {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone).catch(err => {
+                console.warn('Cache put failed:', err);
+              });
+            });
+          } catch (error) {
+            console.warn('Cache operation failed:', error);
+          }
           return response;
         })
         .catch(() => {
-          return caches.match(event.request);
+          return caches.match(event.request)
+            .then(cachedResponse => {
+              return cachedResponse || Promise.reject('No cached response available');
+            });
         })
     );
   }
 
-  // For other assets, use cache-first strategy
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
+  // For shared content requests or hash-based navigation, bypass cache
+  if (event.request.url.includes('?share') || event.request.url.includes('#share=')) {
+    return event.respondWith(fetch(event.request));
+  }
 
-      return fetch(event.request).then(response => {
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
+  // For other assets, use cache-first strategy with proper error handling
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        if (response) return response;
+
+        return fetch(event.request).then(response => {
+          try {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone).catch(err => {
+                console.warn('Cache put failed:', err);
+              });
+            });
+          } catch (error) {
+            console.warn('Cache operation failed:', error);
+          }
+          return response;
         });
-        return response;
-      });
-    })
+      })
   );
 });
 
