@@ -1,12 +1,12 @@
 class TextProcessor {
     constructor() {
-        // Add CACHE_NAME as a class property
         this.CACHE_NAME = 'lang-processor-cache';
         this.inputText = document.getElementById('inputText');
         this.resultContainer = document.getElementById('resultContainer');
         this.resultContent = document.getElementById('resultContent');
         this.resultsStack = [];
         this.resultsMarkdown = [];
+        this.resultsSources = [];
         this.isShareView = window.location.hash.includes('?share');
 
         if (this.isShareView) {
@@ -45,7 +45,6 @@ class TextProcessor {
             window.location.hash = newHash;
 
             try {
-                // Clear cache and force reload
                 if ('serviceWorker' in navigator) {
                     const registrations = await navigator.serviceWorker.getRegistrations();
                     for (let registration of registrations) {
@@ -78,7 +77,10 @@ class TextProcessor {
             }
 
             const requestBody = {
-                content: content
+                content: {
+                    text: content,
+                    source: this.resultsSources[0] || 'No source'
+                }
             };
 
             const queryParams = pjApiKey ? '?expiry=never' : '';
@@ -103,6 +105,7 @@ class TextProcessor {
             throw error;
         }
     }
+
 
     async getGistContent(id, endpoint) {
         try {
@@ -129,10 +132,8 @@ class TextProcessor {
         try {
             if (hash.startsWith('share=')) {
                 try {
-                    // Only try to clear cache if it's available
                     if ('caches' in window) {
                         const cache = await caches.open(this.CACHE_NAME);
-                        // Only try to delete if it's a valid cache URL
                         if (window.location.href.startsWith('http')) {
                             await cache.delete(window.location.href);
                         }
@@ -168,7 +169,7 @@ class TextProcessor {
             const textContent = content || await this.getContent();
             const prompt = this.buildPrompt(task, textContent);
             const result = await this.callAPI(prompt);
-            this.displayResult(result);
+            this.displayResult(result, true, this.currentSource);
         } catch (error) {
             console.error('Error processing text:', error);
             alert('Error processing text. Please try again.');
@@ -185,8 +186,10 @@ class TextProcessor {
 
         if (this.isValidUrl(text)) {
             const response = await fetch(`https://r.jina.ai/${encodeURIComponent(text)}`);
+            this.currentSource = text;
             return await response.text();
         }
+        this.currentSource = 'No source';
         return text;
     }
 
@@ -244,17 +247,31 @@ class TextProcessor {
         return result.choices[0].message.content;
     }
 
-    displayResult(markdownOutput, isNewResult = true) {
+    displayResult(markdownOutput, isNewResult = true, source = null) {
         if (this.isShareView) {
-            this.resultContent.innerHTML = marked.parse(markdownOutput);
+            let contentHtml = '';
+            if (typeof markdownOutput === 'object' && markdownOutput.text) {
+                contentHtml = markdownOutput.source !== 'No source' ? 
+                    `<div class="text-xs text-gray-500">Source: <a class="underline text-gray-500 hover:text-blue-500" href="${markdownOutput.source}">${markdownOutput.source}</a></div>
+                    ${marked.parse(markdownOutput.text)}` :
+                    marked.parse(markdownOutput.text);
+                this.resultContent.innerHTML = contentHtml;
+            } else {
+                this.resultContent.innerHTML = marked.parse(markdownOutput);
+            }
             return;
         }
 
         const config = configManager.getConfig();
         const isShareEnabled = config.pocketJsonEndpoint;
+        const sourceToDisplay = source || this.currentSource || 'No source';
+
+        const sourceHtml = sourceToDisplay !== 'No source' ? 
+            `<div class="text-xs text-gray-500 mb-2">Source: ${sourceToDisplay}</div>` : '';
 
         const resultHtml = `
             <div class="result-item bg-white shadow-lg rounded-2xl p-8 mb-6" data-result-index="${isNewResult ? 0 : this.resultsStack.length}">
+                ${sourceHtml}
                 <div class="flex gap-3 mb-4 justify-end">
                     <button class="action-btn bg-yellow-500 text-white px-2 py-1 text-sm rounded-lg hover:bg-yellow-600 transition-all ${!isShareEnabled ? 'opacity-50 cursor-not-allowed' : ''}" 
                             data-action="share" 
@@ -272,13 +289,14 @@ class TextProcessor {
                     </button>
                 </div>
                 <div class="result-content prose lg:prose-lg">
-                    ${marked.parse(markdownOutput)}
+                    ${marked.parse(typeof markdownOutput === 'object' ? markdownOutput.text : markdownOutput)}
                 </div>
             </div>`;
 
         if (isNewResult) {
             this.resultsStack.unshift(resultHtml);
-            this.resultsMarkdown.unshift(markdownOutput);
+            this.resultsMarkdown.unshift(typeof markdownOutput === 'object' ? markdownOutput.text : markdownOutput);
+            this.resultsSources.unshift(sourceToDisplay);
         }
 
         this.resultContent.innerHTML = this.resultsStack.join('');
