@@ -1,5 +1,5 @@
-const APP_VERSION = '0.1.3';
-const CACHE_NAME = 'lang-processor-cache';
+const APP_VERSION = '0.1.4';
+const CACHE_NAME = `lang-processor-cache-${APP_VERSION}`;
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -16,6 +16,9 @@ const ASSETS_TO_CACHE = [
 self.APP_VERSION = APP_VERSION;
 
 self.addEventListener('install', (event) => {
+  // Skip waiting to activate new service worker immediately
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
@@ -100,7 +103,7 @@ self.addEventListener('activate', (event) => {
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== CACHE_NAME) {
+            if (cacheName.startsWith('lang-processor-cache-') && cacheName !== CACHE_NAME) {
               return caches.delete(cacheName);
             }
           })
@@ -112,9 +115,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Add message handling for version checks
 self.addEventListener('message', (event) => {
   if (event.data === 'GET_VERSION') {
-    event.ports[0].postMessage(APP_VERSION);
+    event.ports[0].postMessage({
+      version: APP_VERSION,
+      timestamp: new Date().getTime()
+    });
   }
 });

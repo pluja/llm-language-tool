@@ -1,7 +1,9 @@
 class ConfigManager {
     constructor() {
         this.configKey = 'apiConfig';
-        this.APP_VERSION = '0.1.3';
+        this.APP_VERSION = '0.1.4';
+        this.lastUpdateCheck = 0;
+        this.UPDATE_CHECK_INTERVAL = 1000 * 60 * 60; // 1 hour
         this.defaultConfig = {
             apiEndpoint: '',
             apiKey: '',
@@ -60,6 +62,56 @@ class ConfigManager {
         }, 3000);
     }
 
+    async checkForUpdates() {
+        if (!('serviceWorker' in navigator)) {
+            return { hasUpdate: false, error: 'Service Worker not supported' };
+        }
+
+        try {
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (!registration) {
+                return { hasUpdate: false, error: 'No Service Worker registered' };
+            }
+
+            // Force update check
+            await registration.update();
+
+            // Get version from Service Worker
+            const currentVersion = await this.getServiceWorkerVersion();
+
+            if (!currentVersion) {
+                return { hasUpdate: false, error: 'Could not get Service Worker version' };
+            }
+
+            return {
+                hasUpdate: currentVersion.version !== this.APP_VERSION,
+                currentVersion: currentVersion.version,
+                appVersion: this.APP_VERSION
+            };
+        } catch (error) {
+            console.error('Update check failed:', error);
+            return { hasUpdate: false, error: error.message };
+        }
+    }
+
+    async getServiceWorkerVersion() {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (!registration || !registration.active) {
+            return null;
+        }
+
+        // Use MessageChannel for reliable communication
+        const messageChannel = new MessageChannel();
+
+        return new Promise((resolve) => {
+            messageChannel.port1.onmessage = (event) => {
+                resolve(event.data);
+            };
+
+            registration.active.postMessage('GET_VERSION', [messageChannel.port2]);
+        });
+    }
+
     initializeConfigUI() {
         this.modal = document.getElementById('modal');
         this.apiEndpointInput = document.getElementById('apiEndpoint');
@@ -107,53 +159,48 @@ class ConfigManager {
         if (!updateBtn || !versionInfo) return;
 
         updateBtn.addEventListener('click', async () => {
+            // Prevent multiple rapid clicks
+            if (Date.now() - this.lastUpdateCheck < 5000) {
+                this.showToast('Please wait before checking again', 'warning');
+                return;
+            }
+
+            this.lastUpdateCheck = Date.now();
             updateBtn.disabled = true;
             updateBtn.textContent = 'Checking...';
 
             try {
-                if ('serviceWorker' in navigator) {
-                    const registration = await navigator.serviceWorker.getRegistration();
-                    if (registration) {
-                        await registration.update();
-                        const newWorker = registration.installing || registration.waiting;
+                const updateStatus = await this.checkForUpdates();
 
-                        if (newWorker) {
-                            // New version available
-                            updateBtn.textContent = 'Update Available!';
-                            this.showToast('Update available!', 'success');
+                if (updateStatus.error) {
+                    this.showToast(`Update check failed: ${updateStatus.error}`, 'error');
+                    updateBtn.textContent = 'Error checking';
+                } else if (updateStatus.hasUpdate) {
+                    updateBtn.textContent = 'Update Available!';
+                    const shouldUpdate = confirm('A new version is available! Update now?');
 
-                            const shouldUpdate = confirm('A new version is available! Update now?');
-                            if (shouldUpdate) {
-                                // Clear all caches
-                                const cacheKeys = await caches.keys();
-                                await Promise.all(cacheKeys.map(key => caches.delete(key)));
+                    if (shouldUpdate) {
+                        // Clear all caches before reload
+                        const cacheKeys = await caches.keys();
+                        await Promise.all(cacheKeys.map(key => caches.delete(key)));
 
-                                // Reload the page
-                                window.location.reload(true);
-                            } else {
-                                updateBtn.disabled = false;
-                                updateBtn.textContent = 'Check for Updates';
-                            }
-                        } else {
-                            // No update available
-                            updateBtn.textContent = 'Up to date!';
-                            this.showToast('App is up to date!', 'success');
-                            setTimeout(() => {
-                                updateBtn.disabled = false;
-                                updateBtn.textContent = 'Check for Updates';
-                            }, 2000);
-                        }
+                        // Force reload from server
+                        window.location.reload(true);
                     }
+                } else {
+                    updateBtn.textContent = 'Up to date!';
+                    this.showToast('App is up to date!', 'success');
                 }
             } catch (error) {
                 console.error('Update check failed:', error);
                 this.showToast('Error checking for updates', 'error');
                 updateBtn.textContent = 'Error checking';
-                setTimeout(() => {
-                    updateBtn.disabled = false;
-                    updateBtn.textContent = 'Check for Updates';
-                }, 2000);
             }
+
+            setTimeout(() => {
+                updateBtn.disabled = false;
+                updateBtn.textContent = 'Check for Updates';
+            }, 2000);
         });
     }
 
