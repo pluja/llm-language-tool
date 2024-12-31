@@ -1,7 +1,7 @@
 class ConfigManager {
     constructor() {
         this.configKey = 'apiConfig';
-        this.APP_VERSION = '0.1.4';
+        this.APP_VERSION = '0.1.5';
         this.lastUpdateCheck = 0;
         this.UPDATE_CHECK_INTERVAL = 1000 * 60 * 60; // 1 hour
         this.defaultConfig = {

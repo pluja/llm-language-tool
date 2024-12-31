@@ -1,4 +1,4 @@
-const APP_VERSION = '0.1.4';
+const APP_VERSION = '0.1.5';
 const CACHE_NAME = `lang-processor-cache-${APP_VERSION}`;
 const ASSETS_TO_CACHE = [
   './',
