@@ -1,7 +1,7 @@
 class ConfigManager {
     constructor() {
         this.configKey = 'apiConfig';
-        this.APP_VERSION = '0.1.2';
+        this.APP_VERSION = '0.1.3';
         this.defaultConfig = {
             apiEndpoint: '',
             apiKey: '',
