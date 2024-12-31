@@ -198,18 +198,52 @@ class TextProcessor {
             case 'translate':
                 const inputLang = document.getElementById('inputLanguage').value;
                 const outputLang = document.getElementById('outputLanguage').value;
-                return `You are an expert translation machine. You must reply with a MARKDOWN version of the INPUT content. YOU MUST REPLY WITH MARKDOWN ONLY, do not add anything extra, just the translated content in MD. Your translation must be high quality, not literal but adapt to ${outputLang} so it seems it was written in ${outputLang} rather than translated. NEVER OMIT ANY CONTENT FROM THE INPUT. Translate the following text from ${inputLang} to ${outputLang}.\n\n${content}`;
+                return `You are a precise translation engine. CRITICAL INSTRUCTIONS:
+1. Output ONLY the translated content in clean Markdown
+2. You MUST remove all ads, navigation elements, related articles, offers, and non-essential content
+3. Translate from ${inputLang} to ${outputLang} with natural fluency, not word-for-word
+4. Preserve 100% of the main content's meaning and information
+5. Never add meta-commentary or explanatory text
+6. Never start with phrases like "Here's the translation"
+
+Content to translate:
+${content}`;
 
             case 'summarize':
-                return `Provide a concise summary of this text in the same language as the input. Do not add anything extra, just the summarized content. You must ALWAYS use the same language as the input text: \n\n${content}`;
+                return `You are a precise summarization engine. CRITICAL INSTRUCTIONS:
+1. Output ONLY the summarized content in the original language
+2. Remove all ads, navigation elements, related articles, and non-essential content  
+3. Maintain the original language of the input text
+4. Keep all key points and main ideas
+5. Never add meta-commentary or explanatory text
+6. Never start with phrases like "Here's the summary"
+
+Content to summarize:
+${content}`;
 
             case 'correct':
                 const level = document.getElementById('correctionLevel').value;
                 const style = document.getElementById('correctionStyle').value;
-                return `Proofread and correct this text with ${level} level of changes and ${style} style. Reply only with the corrected text. Do not add anything extra, just the corrected content. You must ALWAYS use the same language as the input text: \n\n${content}`;
+                return `You are a precise text correction engine. CRITICAL INSTRUCTIONS:
+1. Output ONLY the corrected text
+2. Apply ${level} correction level and ${style} writing style
+3. Maintain the original language of the input text
+4. Never add meta-commentary or explanatory text
+5. Never start with phrases like "Here's the corrected version"
+
+Content to correct:
+${content}`;
 
             case 'explain':
-                return `Explain the following text in detail, analyzing its key points and providing context. Reply with a clear and structured MARKDOWN explanation. You must ALWAYS use the same language as the input text. Do not add any extra prose outside the explanation: \n\n${content}`;
+                return `You are a precise explanation engine. CRITICAL INSTRUCTIONS:
+1. Output ONLY a structured Markdown explanation
+2. Maintain the original language of the input text
+3. Analyze key points and provide detailed context
+4. Never add meta-commentary outside the explanation
+5. Never start with phrases like "Let me explain"
+
+Content to explain:
+${content}`;
 
             default:
                 throw new Error('Invalid task');
@@ -225,7 +259,7 @@ class TextProcessor {
         const body = {
             model: config.modelId,
             messages: [
-                { role: "system", content: "You are a helpful text assistant. Complete the task without any extra prose. Just reply what you are asked to." },
+                { role: "system", content: "You are a helpful text assistant. Complete the task without any extra prose. You must comply the task provided by the user carefully." },
                 { role: "user", content: prompt }
             ]
         };
