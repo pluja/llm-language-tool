@@ -1,6 +1,7 @@
 class ConfigManager {
     constructor() {
         this.configKey = 'apiConfig';
+        this.APP_VERSION = '0.1.0';
         this.defaultConfig = {
             apiEndpoint: '',
             apiKey: '',
@@ -75,8 +76,85 @@ class ConfigManager {
         this.pocketJsonEndpointInput = document.getElementById('pocketJsonEndpoint');
         this.pocketJsonApiKeyInput = document.getElementById('pocketJsonApiKey');
 
+        // Add version and update section
+        const versionSection = document.createElement('div');
+        versionSection.className = 'pt-4 my-6 border-t border-gray-200';
+        versionSection.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900">App Version</h3>
+                    <p class="text-sm text-gray-500" id="appVersionInfo">v${this.APP_VERSION}</p>
+                </div>
+                <button id="updateAppBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                    Check for Updates
+                </button>
+            </div>
+        `;
+
+        // Insert before the save button container
+        const saveButtonContainer = this.saveConfigBtn.parentNode;
+        saveButtonContainer.parentNode.insertBefore(versionSection, saveButtonContainer);
+
+        this.initializeUpdateChecker();
         this.loadStoredConfig();
         this.bindEvents();
+    }
+
+    initializeUpdateChecker() {
+        const updateBtn = document.getElementById('updateAppBtn');
+        const versionInfo = document.getElementById('appVersionInfo');
+
+        if (!updateBtn || !versionInfo) return;
+
+        updateBtn.addEventListener('click', async () => {
+            updateBtn.disabled = true;
+            updateBtn.textContent = 'Checking...';
+
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        await registration.update();
+                        const newWorker = registration.installing || registration.waiting;
+
+                        if (newWorker) {
+                            // New version available
+                            updateBtn.textContent = 'Update Available!';
+                            this.showToast('Update available!', 'success');
+
+                            const shouldUpdate = confirm('A new version is available! Update now?');
+                            if (shouldUpdate) {
+                                // Clear all caches
+                                const cacheKeys = await caches.keys();
+                                await Promise.all(cacheKeys.map(key => caches.delete(key)));
+
+                                // Reload the page
+                                window.location.reload(true);
+                            } else {
+                                updateBtn.disabled = false;
+                                updateBtn.textContent = 'Check for Updates';
+                            }
+                        } else {
+                            // No update available
+                            updateBtn.textContent = 'Up to date!';
+                            this.showToast('App is up to date!', 'success');
+                            setTimeout(() => {
+                                updateBtn.disabled = false;
+                                updateBtn.textContent = 'Check for Updates';
+                            }, 2000);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Update check failed:', error);
+                this.showToast('Error checking for updates', 'error');
+                updateBtn.textContent = 'Error checking';
+                setTimeout(() => {
+                    updateBtn.disabled = false;
+                    updateBtn.textContent = 'Check for Updates';
+                }, 2000);
+            }
+        });
     }
 
     loadStoredConfig() {
@@ -186,7 +264,6 @@ class ConfigManager {
                         languageManager.updateLanguageSelects();
                     }
 
-                    const detailsText = details.join(', ');
                     this.showToast(`Settings imported successfully from URL`, 'success');
 
                     // Remove the config parameter from URL
