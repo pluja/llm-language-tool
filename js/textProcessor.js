@@ -14,15 +14,12 @@ class TextProcessor {
     }
 
     setupShareView() {
-        // Hide the config modal
         const modal = document.getElementById('modal');
         if (modal) modal.remove();
 
-        // Hide the edit config button
         const editConfigBtn = document.getElementById('editConfigBtn');
         if (editConfigBtn) editConfigBtn.remove();
 
-        // Replace the entire container content
         document.querySelector('.container').innerHTML = `
             <div class="bg-white shadow-lg rounded-2xl p-8">
                 <div class="flex justify-between items-center mb-8">
@@ -35,18 +32,18 @@ class TextProcessor {
                 </div>
             </div>`;
 
-        // Remove footer in share view
         const footer = document.querySelector('footer');
         if (footer) footer.remove();
 
-        // Reassign resultContent since we replaced the DOM
         this.resultContent = document.getElementById('resultContent');
 
-        // Add event listener for the "View Full App" button
-        document.getElementById('viewFullApp').addEventListener('click', () => {
-            const baseUrl = window.location.href.split('#')[0];
-            window.location.href = baseUrl;
-            window.location.reload();
+        document.getElementById('viewFullApp').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const newHash = window.location.hash.replace('?share', '');
+            window.location.hash = newHash;
+            // Force a clean reload
+            await caches.delete(CACHE_NAME);
+            window.location.reload(true);
         });
     }
 
@@ -82,7 +79,8 @@ class TextProcessor {
             const data = await response.json();
             return {
                 id: data.id,
-                expiresAt: data.expires_at
+                expiresAt: data.expires_at,
+                endpoint: pjEndpoint
             };
         } catch (error) {
             console.error('Error creating share:', error);
@@ -90,12 +88,13 @@ class TextProcessor {
         }
     }
 
-    async getGistContent(id) {
+    async getGistContent(id, endpoint) {
         try {
             const config = configManager.getConfig();
-            const pjEndpoint = config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
+            const pjEndpoint = endpoint || config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
 
-            const response = await fetch(`${pjEndpoint}/${id}`);
+            const cleanEndpoint = pjEndpoint.replace(/\/+$/, '');
+            const response = await fetch(`${cleanEndpoint}/${id}`);
             if (!response.ok) {
                 throw new Error(`Failed to fetch content: ${response.statusText}`);
             }
@@ -113,8 +112,10 @@ class TextProcessor {
 
         try {
             if (hash.startsWith('share=')) {
-                const shareId = hash.replace('share=', '');
-                const content = await this.getGistContent(shareId);
+                const parts = hash.split('?')[0];
+                const [shareId, endpoint] = parts.replace('share=', '').split('@');
+                const decodedEndpoint = endpoint ? decodeURIComponent(endpoint) : null;
+                const content = await this.getGistContent(shareId, decodedEndpoint);
                 if (content) {
                     this.displayResult(content, true);
                     if (this.isShareView) {
@@ -219,10 +220,15 @@ class TextProcessor {
             return;
         }
 
+        const config = configManager.getConfig();
+        const isShareEnabled = config.pocketJsonEndpoint;
+
         const resultHtml = `
             <div class="result-item bg-white shadow-lg rounded-2xl p-8 mb-6" data-result-index="${isNewResult ? 0 : this.resultsStack.length}">
                 <div class="flex gap-3 mb-4 justify-end">
-                    <button class="action-btn bg-yellow-500 text-white px-2 py-1 text-sm rounded-lg hover:bg-yellow-600 transition-all" data-action="share">
+                    <button class="action-btn bg-yellow-500 text-white px-2 py-1 text-sm rounded-lg hover:bg-yellow-600 transition-all ${!isShareEnabled ? 'opacity-50 cursor-not-allowed' : ''}" 
+                            data-action="share" 
+                            ${!isShareEnabled ? 'disabled title="PocketJSON endpoint not configured"' : ''}>
                         Share
                     </button>
                     <button class="action-btn bg-blue-500 text-white px-2 py-1 text-sm rounded-lg hover:bg-blue-600 transition-all" data-action="work">
@@ -268,8 +274,9 @@ class TextProcessor {
 
                         try {
                             const share = await this.createGist(markdownContent);
-                            const shareUrl = `${window.location.origin}${window.location.pathname}#share=${share.id}?share`;
-                            await navigator.clipboard.writeText(shareUrl);
+                            const shareUrl = `${window.location.origin}${window.location.pathname}#share=${share.id}@${encodeURIComponent(share.endpoint)}`;
+                            const finalShareUrl = `${shareUrl}?share`;
+                            await navigator.clipboard.writeText(finalShareUrl);
                             btn.textContent = 'Copied!';
 
                             const expiryInfo = document.createElement('span');
