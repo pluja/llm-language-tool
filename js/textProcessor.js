@@ -198,51 +198,32 @@ class TextProcessor {
             case 'translate':
                 const inputLang = document.getElementById('inputLanguage').value;
                 const outputLang = document.getElementById('outputLanguage').value;
-                return `You are a precise translation engine. CRITICAL INSTRUCTIONS:
-1. Output ONLY the translated content in clean Markdown
-2. You MUST remove all ads, navigation elements, related articles, offers, and non-essential content
-3. Translate from ${inputLang} to ${outputLang} with natural fluency, not word-for-word
-4. Preserve 100% of the main content's meaning and information
-5. Never add meta-commentary or explanatory text
-6. Never start with phrases like "Here's the translation"
+                return `You are a translation engine. You translate text to ${outputLang}. You must reply ONLY the translated content in clean Markdown. You MUST remove all ads, navigation elements, related articles, offers, and non-essential content. Translate from ${inputLang} to ${outputLang} with natural fluency, not word-for-word. Preserve 100% of the main content's meaning and information. Never add meta-commentary or explanatory text. Never start with phrases like "Here's the translation"
 
 Content to translate:
 ${content}`;
 
             case 'summarize':
-                return `You are a precise summarization engine. CRITICAL INSTRUCTIONS:
-1. Output ONLY the summarized content in the original language
-2. Remove all ads, navigation elements, related articles, and non-essential content  
-3. Maintain the original language of the input text
-4. Keep all key points and main ideas
-5. Never add meta-commentary or explanatory text
-6. Never start with phrases like "Here's the summary"
+                return `You are a summarization engine. You must give a summary the provided text in the same original text language. The summary must be two paragraphs at most. Keep all key points and main ideas. Never add meta-commentary or explanatory text. Avoid bias. Never start with phrases like "Here's the summary". You can use Markdown formatting.
 
 Content to summarize:
+
 ${content}`;
 
             case 'correct':
                 const level = document.getElementById('correctionLevel').value;
                 const style = document.getElementById('correctionStyle').value;
-                return `You are a precise text correction engine. CRITICAL INSTRUCTIONS:
-1. Output ONLY the corrected text
-2. Apply ${level} correction level and ${style} writing style
-3. Maintain the original language of the input text
-4. Never add meta-commentary or explanatory text
-5. Never start with phrases like "Here's the corrected version"
+                return `You are a precise text correction engine. You must reply ONLY with the corrected version of the given text. Apply ${level} correction level and ${style} writing style. Maintain the original language of the input text. Never add meta-commentary or explanatory text. Never start with phrases like "Here's the corrected version".
 
-Content to correct:
+Text to correct:
+
 ${content}`;
 
             case 'explain':
-                return `You are a precise explanation engine. CRITICAL INSTRUCTIONS:
-1. Output ONLY a structured Markdown explanation
-2. Maintain the original language of the input text
-3. Analyze key points and provide detailed context
-4. Never add meta-commentary outside the explanation
-5. Never start with phrases like "Let me explain"
+                return `You are a precise explanation engine. You must reply ONLY with a structured Markdown explanation. Reply with the same original language of the input text (i.e. if the text is in Spanish you must reply in Spanish). Analyze key points and provide detailed context so the user can understand the content. Never add meta-commentary outside the explanation. Never start with phrases like "Let me explain".
 
 Content to explain:
+
 ${content}`;
 
             default:
