@@ -45,34 +45,90 @@ class TextProcessor {
         // Add event listener for the "View Full App" button
         document.getElementById('viewFullApp').addEventListener('click', () => {
             const baseUrl = window.location.href.split('#')[0];
-            const hash = window.location.hash.replace('?share', '');
-            // Force page reload by setting window.location directly
-            window.location.href = baseUrl + hash;
-            // Force reload to ensure clean state
+            window.location.href = baseUrl;
             window.location.reload();
         });
     }
 
-    checkUrlHash() {
-        const hash = window.location.hash.slice(1);
-        if (hash) {
-            try {
-                // Remove the ?share parameter if present
-                const encodedContent = hash.replace('?share', '');
-                const decodedContent = this.decodeShareContent(encodedContent);
-                this.displayResult(decodedContent, true);
-            } catch (error) {
-                console.error('Error decoding shared content:', error);
+    async createGist(content, description = 'Shared content') {
+        try {
+            const config = configManager.getConfig();
+            const pjEndpoint = config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
+            const pjApiKey = config.pocketJsonApiKey;
+
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            if (pjApiKey) {
+                headers['X-API-Key'] = pjApiKey;
             }
+
+            const requestBody = {
+                content: content
+            };
+
+            const queryParams = pjApiKey ? '?expiry=never' : '';
+            const response = await fetch(`${pjEndpoint}${queryParams}`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`PocketJSON API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return {
+                id: data.id,
+                expiresAt: data.expires_at
+            };
+        } catch (error) {
+            console.error('Error creating share:', error);
+            throw error;
         }
     }
 
-    encodeShareContent(text) {
-        return btoa(encodeURIComponent(text));
+    async getGistContent(id) {
+        try {
+            const config = configManager.getConfig();
+            const pjEndpoint = config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
+
+            const response = await fetch(`${pjEndpoint}/${id}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch content: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data.content;
+        } catch (error) {
+            console.error('Error fetching shared content:', error);
+            return null;
+        }
     }
 
-    decodeShareContent(encoded) {
-        return decodeURIComponent(atob(encoded));
+    async checkUrlHash() {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return;
+
+        try {
+            if (hash.startsWith('share=')) {
+                const shareId = hash.replace('share=', '');
+                const content = await this.getGistContent(shareId);
+                if (content) {
+                    this.displayResult(content, true);
+                    if (this.isShareView) {
+                        const viewLink = document.createElement('div');
+                        viewLink.className = 'mt-2 text-sm text-gray-600';
+                        const timestamp = new Date().toLocaleDateString();
+                        viewLink.innerHTML = `<span>Shared content (${timestamp})</span>`;
+                        this.resultContent.firstChild.appendChild(viewLink);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading shared content:', error);
+        }
     }
 
     async processText(task, content = null) {
@@ -108,7 +164,6 @@ class TextProcessor {
             case 'translate':
                 const inputLang = document.getElementById('inputLanguage').value;
                 const outputLang = document.getElementById('outputLanguage').value;
-
                 return `You are an expert translation machine. You must reply with a MARKDOWN version of the INPUT content. YOU MUST REPLY WITH MARKDOWN ONLY, do not add anything extra, just the translated content in MD. Your translation must be high quality, not literal but adapt to ${outputLang} so it seems it was written in ${outputLang} rather than translated. NEVER OMIT ANY CONTENT FROM THE INPUT. Translate the following text from ${inputLang} to ${outputLang}.\n\n${content}`;
 
             case 'summarize':
@@ -160,7 +215,6 @@ class TextProcessor {
 
     displayResult(markdownOutput, isNewResult = true) {
         if (this.isShareView) {
-            // In share view, just display the content without any buttons
             this.resultContent.innerHTML = marked.parse(markdownOutput);
             return;
         }
@@ -207,20 +261,47 @@ class TextProcessor {
                 switch (action) {
                     case 'share':
                         const markdownContent = this.resultsMarkdown[resultIndex];
-                        const encodedContent = this.encodeShareContent(markdownContent);
-                        // Always use the simple share URL
-                        const shareUrl = `${window.location.origin}${window.location.pathname}#${encodedContent}?share`;
-                        navigator.clipboard.writeText(shareUrl);
-                        e.target.textContent = 'Copied!';
-                        setTimeout(() => e.target.textContent = 'Share', 2000);
+                        const btn = e.target;
+
+                        btn.textContent = 'Creating share...';
+                        btn.disabled = true;
+
+                        try {
+                            const share = await this.createGist(markdownContent);
+                            const shareUrl = `${window.location.origin}${window.location.pathname}#share=${share.id}?share`;
+                            await navigator.clipboard.writeText(shareUrl);
+                            btn.textContent = 'Copied!';
+
+                            const expiryInfo = document.createElement('span');
+                            if (share.expiresAt) {
+                                const expDate = new Date(share.expiresAt).toLocaleDateString();
+                                expiryInfo.innerHTML = ` (expires: ${expDate})`;
+                            } else {
+                                expiryInfo.innerHTML = ` (never expires)`;
+                            }
+                            btn.parentNode.insertBefore(expiryInfo, btn.nextSibling);
+                        } catch (error) {
+                            btn.textContent = 'Error!';
+                            console.error('Share failed:', error);
+                        } finally {
+                            btn.disabled = false;
+                            setTimeout(() => {
+                                if (btn.textContent.includes('Copied') || btn.textContent.includes('Error')) {
+                                    btn.textContent = 'Share';
+                                }
+                            }, 2000);
+                        }
                         break;
+
                     case 'work':
                         this.inputText.value = this.resultsMarkdown[resultIndex];
                         this.inputText.focus();
                         break;
+
                     case 'summarize':
                         await this.processText('summarize', this.resultsMarkdown[resultIndex]);
                         break;
+
                     case 'explain':
                         await this.processText('explain', this.resultsMarkdown[resultIndex]);
                         break;
