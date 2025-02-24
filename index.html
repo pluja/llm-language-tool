@@ -38,16 +38,19 @@
                         <div class="pl-4 space-y-4">
                             <div>
                                 <label class="block mb-2 font-medium text-gray-700">OpenAI API Endpoint</label>
-                                <input id="apiEndpoint" type="text" class="w-full p-2 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://api.openai.com/v1/chat/completions">
+                                <input id="apiEndpoint" type="text" class="w-full p-2 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://api.openai.com/v1">
+                                <small class="block mt-1 text-gray-600">API Base URL (e.g., https://api.openai.com/v1)</small>
                             </div>
                             <div>
                                 <label class="block mb-2 font-medium text-gray-700">API Key</label>
                                 <input id="apiKey" type="text" class="w-full p-2 font-mono text-sm transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Your OpenAI API Key">
                             </div>
                             <div>
-                                <label class="block mb-2 font-medium text-gray-700">Model ID</label>
-                                <input id="modelId" type="text" class="w-full p-2 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="gpt-4-mini">
-                                <small class="block mt-2 text-gray-600">*Recommended: <i>Claude 3.5 Haiku</i>, <i>Gemini 2.0 Flash</i>, <i>Qwen2.5</i></small>
+                                <label class="block mb-2 font-medium text-gray-700">Model</label>
+                                <select id="modelId" class="w-full p-2 transition-all border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Loading models...</option>
+                                </select>
+                                <small class="block mt-2 text-gray-600">Available models will be loaded from your API endpoint</small>
                             </div>
                         </div>
                         <small class="block mt-2 text-gray-500">*Check out <a href="https://nano-gpt.com" class="text-blue-600 hover:underline">nano-gpt</a> or <a href="https://ppq.ai" class="text-blue-600 hover:underline">ppq.ai</a> for privacy-respecting multi-models via OpenAI compatible API.</small>
