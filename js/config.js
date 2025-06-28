@@ -1,7 +1,7 @@
 class ConfigManager {
   constructor() {
     this.configKey = "apiConfig";
-    this.APP_VERSION = "0.1.6";
+    this.APP_VERSION = "0.1.7";
     this.lastUpdateCheck = 0;
     this.UPDATE_CHECK_INTERVAL = 1000 * 60 * 60; // 1 hour
     this.defaultConfig = {
@@ -11,6 +11,7 @@ class ConfigManager {
       pocketJsonEndpoint: "https://pocketjson.pluja.dev",
       pocketJsonApiKey: "",
     };
+    this.models = [];
     this.createToastElement();
     this.initializeConfigUI();
     this.handleUrlParams();
@@ -153,8 +154,8 @@ class ConfigManager {
     }
   }
 
-  async updateModelsList() {
-    const currentModel = this.modelIdInput.value;
+  async updateModelsList(selectedModelId = "") {
+    const currentModel = selectedModelId || this.modelIdInput.value;
 
     // Only show loading if we have an endpoint
     if (this.apiEndpointInput.value.trim()) {
@@ -169,15 +170,13 @@ class ConfigManager {
         return;
       }
 
-      models.forEach((model) => {
-        const option = document.createElement("option");
-        option.value = model.id;
-        option.textContent = model.name;
-        this.modelIdInput.appendChild(option);
-      });
+      models.sort((a, b) => a.name.localeCompare(b.name));
+      this.models = models;
+
+      this.renderModels();
 
       // Restore previously selected model if it exists in the new list
-      if (currentModel && models.some((m) => m.id === currentModel)) {
+      if (currentModel && this.models.some((m) => m.id === currentModel)) {
         this.modelIdInput.value = currentModel;
       }
     } else {
@@ -185,11 +184,33 @@ class ConfigManager {
     }
   }
 
+  renderModels(filter = "") {
+    const lowerCaseFilter = filter.toLowerCase();
+    const filteredModels = this.models.filter((model) =>
+      model.name.toLowerCase().includes(lowerCaseFilter)
+    );
+
+    this.modelIdInput.innerHTML = "";
+    if (filteredModels.length === 0) {
+      this.modelIdInput.innerHTML =
+        '<option value="">No models match your search</option>';
+      return;
+    }
+
+    filteredModels.forEach((model) => {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = model.name;
+      this.modelIdInput.appendChild(option);
+    });
+  }
+
   initializeConfigUI() {
     this.modal = document.getElementById("modal");
     this.apiEndpointInput = document.getElementById("apiEndpoint");
     this.apiKeyInput = document.getElementById("apiKey");
     this.modelIdInput = document.getElementById("modelId");
+    this.modelSearchInput = document.getElementById("modelSearch");
     this.saveConfigBtn = document.getElementById("saveConfig");
     this.editConfigBtn = document.getElementById("editConfigBtn");
 
@@ -198,6 +219,10 @@ class ConfigManager {
       if (this.apiEndpointInput.value.trim()) {
         this.updateModelsList();
       }
+    });
+
+    this.modelSearchInput.addEventListener("input", (e) => {
+      this.renderModels(e.target.value);
     });
 
     this.shareConfigBtn = document.createElement("button");
@@ -286,22 +311,16 @@ class ConfigManager {
   }
 
   loadStoredConfig() {
-    const storedConfig = this.getConfig();
-    if (!this.isConfigValid()) {
-      this.modal.classList.remove("hidden");
-    } else {
-      this.apiEndpointInput.value = storedConfig.apiEndpoint;
-      this.apiKeyInput.value = storedConfig.apiKey;
-      this.modelIdInput.value = storedConfig.modelId;
-      this.pocketJsonEndpointInput.value =
-        storedConfig.pocketJsonEndpoint || this.defaultConfig.pocketJsonEndpoint;
-      this.pocketJsonApiKeyInput.value = storedConfig.pocketJsonApiKey || "";
+    const storedConfig = localStorage.getItem(this.configKey);
+    const config = storedConfig ? JSON.parse(storedConfig) : this.defaultConfig;
 
-      // If we have an endpoint, fetch the available models
-      if (storedConfig.apiEndpoint) {
-        this.updateModelsList();
-      }
-    }
+    this.apiEndpointInput.value = config.apiEndpoint || "";
+    this.apiKeyInput.value = config.apiKey || "";
+    this.pocketJsonEndpointInput.value = config.pocketJsonEndpoint || this.defaultConfig.pocketJsonEndpoint;
+    this.pocketJsonApiKeyInput.value = config.pocketJsonApiKey || "";
+
+    // After loading config, update the models list and pass the saved modelId
+    this.updateModelsList(config.modelId);
   }
 
   bindEvents() {
