@@ -1,3 +1,5 @@
+'use strict';
+
 class LanguageManager {
     constructor() {
         this.languages = JSON.parse(localStorage.getItem('languages')) || ['English', 'Spanish', 'French', 'German', 'Italian'];
@@ -23,6 +25,14 @@ class LanguageManager {
                 this.newLanguageInput.value = '';
             }
         });
+
+        // Delegate remove buttons click handling to the list container
+        this.languageList.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-lang]');
+            if (!btn) return;
+            const lang = btn.dataset.lang;
+            this.removeLanguage(lang);
+        });
     }
 
     addLanguage(language) {
@@ -37,7 +47,7 @@ class LanguageManager {
     }
 
     removeLanguage(language) {
-        this.languages = this.languages.filter(l => l !== language);
+        this.languages = this.languages.filter((l) => l !== language);
         this.saveLanguages();
         this.updateLanguageList();
         this.updateLanguageSelects();
@@ -45,14 +55,21 @@ class LanguageManager {
 
     updateLanguageList() {
         this.languageList.innerHTML = '';
-        this.languages.forEach(lang => {
-            const div = document.createElement('div');
-            div.className = 'flex justify-between items-center p-2 border-b';
-            div.innerHTML = `
-        <span>${lang}</span>
-        <button class="text-red-500 hover:text-red-700" onclick="languageManager.removeLanguage('${lang}')">Remove</button>
-      `;
-            this.languageList.appendChild(div);
+        this.languages.forEach((lang) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex justify-between items-center p-2 border-b';
+
+            const span = document.createElement('span');
+            span.textContent = lang;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'text-red-500 hover:text-red-700';
+            removeBtn.dataset.lang = lang;
+            removeBtn.textContent = 'Remove';
+
+            wrapper.appendChild(span);
+            wrapper.appendChild(removeBtn);
+            this.languageList.appendChild(wrapper);
         });
     }
 
@@ -66,19 +83,18 @@ class LanguageManager {
         }
         this.outputLanguageSelect.innerHTML = '';
 
-        // Add language options
-        this.languages.forEach(lang => {
-            const inputOption = new Option(lang, lang.toLowerCase());
-            const outputOption = new Option(lang, lang.toLowerCase());
+        this.languages.forEach((lang) => {
+            const value = lang.toLowerCase();
+            const inputOption = new Option(lang, value);
+            const outputOption = new Option(lang, value);
             this.inputLanguageSelect.add(inputOption);
             this.outputLanguageSelect.add(outputOption);
         });
 
-        // Restore previously selected values if they still exist
-        if (this.languages.map(l => l.toLowerCase()).includes(currentInputVal)) {
+        if (this.languages.map((l) => l.toLowerCase()).includes(currentInputVal)) {
             this.inputLanguageSelect.value = currentInputVal;
         }
-        if (this.languages.map(l => l.toLowerCase()).includes(currentOutputVal)) {
+        if (this.languages.map((l) => l.toLowerCase()).includes(currentOutputVal)) {
             this.outputLanguageSelect.value = currentOutputVal;
         }
     }

@@ -1,3 +1,5 @@
+'use strict';
+
 class ThemeManager {
   constructor(configManager) {
     this.configManager = configManager;
@@ -481,6 +483,38 @@ class ConfigManager {
 
           // Remove the config parameter from URL
           window.history.replaceState({}, document.title, window.location.pathname);
+
+          document.body.classList.add("share-view");
+          const mainContainer = document.querySelector(".container");
+          mainContainer.innerHTML = `
+            <div class="flex justify-end mb-4">
+                <button id="theme-toggle-public" type="button" class="p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700">
+                    <span id="theme-toggle-dark-icon-public" class="hidden text-lg">🌙</span>
+                    <span id="theme-toggle-light-icon-public" class="hidden text-lg">☀️</span>
+                </button>
+            </div>
+            <div id="resultContainer" class="mt-8">
+                  <h2 class="mb-4 text-2xl font-bold">Result</h2>
+                  <div class="p-8 bg-white dark:bg-gray-800 shadow-lg rounded-2xl">
+                      <div id="resultContent" class="mx-auto prose-sm prose sm:prose lg:prose-lg xl:prose-xl dark:prose-invert"></div>
+                  </div>
+              </div>
+          `;
+          // Re-initialize the theme manager for the public view
+          this.themeManager.themeToggleBtn = document.getElementById(
+            "theme-toggle-public"
+          );
+          this.themeManager.themeToggleDarkIcon = document.getElementById(
+            "theme-toggle-dark-icon-public"
+          );
+          this.themeManager.themeToggleLightIcon = document.getElementById(
+            "theme-toggle-light-icon-public"
+          );
+          this.themeManager.init();
+          this.themeManager.applyTheme(config.theme || "system");
+
+          const textProcessor = new TextProcessor(this);
+          textProcessor.processTextWithConfig(config);
         } catch (error) {
           console.error("Error importing settings:", error);
           this.showToast("Error importing settings. Please try again.", "error");

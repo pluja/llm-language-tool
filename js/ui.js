@@ -1,6 +1,8 @@
+'use strict';
+
 class UIManager {
     constructor() {
-        this.currentTask = '';
+        this.currentTask = 'translate';
         this.initializeElements();
         this.bindEvents();
     }
@@ -15,7 +17,7 @@ class UIManager {
     }
 
     bindEvents() {
-        this.taskInputs.forEach(input => {
+        this.taskInputs.forEach((input) => {
             input.addEventListener('change', (e) => this.updateUI(e.target.value));
         });
 
@@ -37,20 +39,16 @@ class UIManager {
         this.currentTask = task;
         this.processBtn.classList.remove('hidden');
 
-        switch (task) {
-            case 'translate':
-                this.correctionOptions.classList.add('hidden');
-                this.languageSelectors.forEach(selector => selector.classList.remove('hidden'));
-                break;
-            case 'correct':
-                this.correctionOptions.classList.remove('hidden');
-                this.languageSelectors.forEach(selector => selector.classList.add('hidden'));
-                break;
-            case 'summarize':
-                this.correctionOptions.classList.add('hidden');
-                this.languageSelectors.forEach(selector => selector.classList.add('hidden'));
-                break;
-        }
+        const isTranslate = task === 'translate';
+        const isCorrect = task === 'correct';
+
+        // Toggle correction options
+        this.correctionOptions.classList.toggle('hidden', !isCorrect);
+
+        // Toggle language selectors
+        this.languageSelectors.forEach((selector) => {
+            selector.classList.toggle('hidden', !isTranslate);
+        });
     }
 }
 

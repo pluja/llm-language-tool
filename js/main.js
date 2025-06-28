@@ -1,19 +1,19 @@
+'use strict';
+
 // Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    // The managers are already instantiated in their respective files
-    const urlParams = new URLSearchParams(window.location.search);
+(function () {
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const content = urlParams.get('content');
+        const task = urlParams.get('task') || 'translate';
+        const output = urlParams.get('output');
 
-    const content = urlParams.get('content');
-    const task = urlParams.get('task');
-    const output = urlParams.get('output');
+        if (!content) return;
 
-    if (content) {
         // Assuming TextProcessor is globally available as 'textProcessor'
         if (textProcessor.isValidUrl(content)) {
-            // Set the input text field with the URL
             document.getElementById('inputText').value = content;
 
-            // Set the output language if provided
             if (output) {
                 const outputSelect = document.getElementById('outputLanguage');
                 if (outputSelect) {
@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Process with the specified task
-            textProcessor.processText(task || 'translate');
+            textProcessor.processText(task);
         }
-    }
-});
+    });
+})();

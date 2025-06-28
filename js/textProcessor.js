@@ -1,3 +1,5 @@
+'use strict';
+
 class TextProcessor {
   constructor() {
     this.CACHE_NAME = "lang-processor-cache";
@@ -23,14 +25,20 @@ class TextProcessor {
     if (editConfigBtn) editConfigBtn.remove();
 
     document.querySelector(".container").innerHTML = `
-            <div class="bg-white shadow-lg rounded-2xl p-8">
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
                 <div class="flex justify-between items-center mb-8">
-                    <button id="viewFullApp" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
-                        View Full App
-                    </button>
-                    <h1 class="text-xl font-bold text-gray-800">Shared Content</h1>
+                    <div class="flex gap-3 items-center">
+                        <button id="viewFullApp" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                            View Full App
+                        </button>
+                        <button id="theme-toggle-public" type="button" class="p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700">
+                            <span id="theme-toggle-dark-icon-public" class="hidden text-lg">🌙</span>
+                            <span id="theme-toggle-light-icon-public" class="hidden text-lg">☀️</span>
+                        </button>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200">Shared Content</h1>
                 </div>
-                <div id="resultContent" class="prose lg:prose-lg">
+                <div id="resultContent" class="prose lg:prose-lg dark:prose-invert">
                 </div>
             </div>`;
 
@@ -60,6 +68,15 @@ class TextProcessor {
 
       window.location.reload(true);
     });
+
+    // Initialize theme toggle for public view
+    if (configManager && configManager.themeManager) {
+        const tm = configManager.themeManager;
+        tm.themeToggleBtn = document.getElementById("theme-toggle-public");
+        tm.themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon-public");
+        tm.themeToggleLightIcon = document.getElementById("theme-toggle-light-icon-public");
+        tm.init();
+    }
   }
 
   async createGist(content, description = "Shared content") {
@@ -197,33 +214,79 @@ class TextProcessor {
       case "translate":
         const inputLang = document.getElementById("inputLanguage").value;
         const outputLang = document.getElementById("outputLanguage").value;
-        return `You are a translation engine. You translate text to ${outputLang}. You must reply ONLY the translated content in clean Markdown. You MUST remove all ads, navigation elements, related articles, offers, and non-essential content. Translate from ${inputLang} to ${outputLang} with natural fluency, not word-for-word. Preserve 100% of the main content's meaning and information. Never add meta-commentary or explanatory text. Never start with phrases like "Here's the translation"
+        const prompt = `You are an expert ${inputLang} to ${outputLang} translator with native-level proficiency in both languages. Your task is to provide a professional, accurate translation following these guidelines:
 
-Content to translate:
-${content}`;
+1. Maintain the original tone, style, and intent
+2. Preserve all factual information and context
+3. Adapt cultural references and idioms appropriately for ${outputLang} speakers
+4. Use natural, fluent ${outputLang} that sounds native, not translated
+5. Retain the original text structure and formatting (i.e. if the text has Markdown keep the Markdown formatting)
+6. Handle technical terms, proper nouns, and specialized vocabulary correctly
+
+YOU MUST reply with only the translation without any introductory phrases, explanations, title, source urls or other meta-commentary. The text is:
+
+${content.split('Markdown Content:')[1] || content}`;
+        return prompt;
 
       case "summarize":
-        return `You are a summarization engine. You must give a summary the provided text in the same original text language. The summary must be two paragraphs at most. Keep all key points and main ideas. Never add meta-commentary or explanatory text. Avoid bias. Never start with phrases like "Here's the summary". You can use Markdown formatting.
+        return `You are an expert summarization specialist with deep expertise in content analysis and information distillation. Your task is to create a comprehensive yet concise summary that captures the essence and critical details of the provided text.
 
-Content to summarize:
+Requirements:
+- Maintain the original language of the source text
+- Deliver a maximum of two well-structured paragraphs. Keep it brief and concise.
+- Preserve all essential facts, key arguments, and main themes
+- Ensure factual accuracy and objective presentation
+- Use clear, professional language with appropriate Markdown formatting
+- Eliminate redundancy while maintaining informational completeness
+- Focus on the most impactful and relevant content
 
-${content}`;
+Deliver the summary directly without any introductory phrases, meta-commentary, or explanatory text. Begin immediately with the summary content.
+
+Text to summarize:
+
+${content.split('Markdown Content:')[1] || content}`;
 
       case "correct":
         const level = document.getElementById("correctionLevel").value;
         const style = document.getElementById("correctionStyle").value;
-        return `You are a precise text correction engine. You must reply ONLY with the corrected version of the given text. Apply ${level} correction level and ${style} writing style. Maintain the original language of the input text. Never add meta-commentary or explanatory text. Never start with phrases like "Here's the corrected version".
+        return `You are an expert copywriter and proofreader with decades of experience in professional writing, editing, and content optimization. Your task is to meticulously review and enhance the provided text according to the specified correction level ${level} and writing style ${style}.
 
-Text to correct:
+Correction Guidelines:
+- Grammar, spelling, and punctuation must be flawless
+- Sentence structure should be clear, concise, and impactful
+- Vocabulary should be precise and contextually appropriate
+- Tone and voice must align with the specified ${style} style
+- Maintain the original language and intent of the source text
+- Preserve any existing formatting, structure, and technical accuracy
+- Eliminate redundancy, improve flow, and enhance readability
+- Ensure consistency in terminology and style throughout
+- The level refers to the level of allowed difference with the original text. 1 is only minor changes and 5 is the most changes.
 
-${content}`;
+Deliver only the corrected text without any introductory phrases, explanations, or meta-commentary. Begin immediately with the enhanced content.
+
+Text to enhance:
+
+${content.split('Markdown Content:')[1] || content}`;
 
       case "explain":
-        return `You are a precise explanation engine. You must reply ONLY with a structured Markdown explanation. Reply with the same original language of the input text (i.e. if the text is in Spanish you must reply in Spanish). Analyze key points and provide detailed context so the user can understand the content. Never add meta-commentary outside the explanation. Never start with phrases like "Let me explain".
+        return `You are an expert content analyst and educator with deep expertise in breaking down complex information into clear, comprehensive explanations. Your task is to provide a thorough, well-structured explanation that helps users fully understand the provided content.
+
+Requirements:
+- Respond in the same language as the source text
+- Use clear, structured Markdown formatting with appropriate headings, bullet points, and emphasis
+- Break down complex concepts into digestible components
+- Provide relevant context, background information, and connections
+- Identify and explain key themes, arguments, and implications
+- Use examples or analogies when helpful for clarity
+- Maintain academic rigor while ensuring accessibility
+- Focus on the most important aspects that require explanation
+- Avoid unnecessary jargon unless the content itself is technical
+
+Deliver the explanation directly without any introductory phrases, meta-commentary, or explanatory text. Begin immediately with the structured explanation.
 
 Content to explain:
 
-${content}`;
+${content.split('Markdown Content:')[1] || content}`;
 
       default:
         throw new Error("Invalid task");
@@ -298,7 +361,7 @@ ${content}`;
         : "";
 
     const resultHtml = `
-            <div class="result-item bg-white shadow-lg rounded-2xl p-8 mb-6" data-result-index="${
+            <div class="result-item bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 mb-6" data-result-index="${
               isNewResult ? 0 : this.resultsStack.length
             }">
                 ${sourceHtml}
@@ -320,7 +383,7 @@ ${content}`;
                         Explain
                     </button>
                 </div>
-                <div class="result-content prose lg:prose-lg">
+                <div class="result-content prose lg:prose-lg dark:prose-invert">
                     ${marked.parse(typeof markdownOutput === "object" ? markdownOutput.text : markdownOutput)}
                 </div>
             </div>`;
