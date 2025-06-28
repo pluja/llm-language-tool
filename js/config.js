@@ -1,3 +1,51 @@
+class ThemeManager {
+  constructor(configManager) {
+    this.configManager = configManager;
+    this.themeToggleBtn = document.getElementById("theme-toggle");
+    this.themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon");
+    this.themeToggleLightIcon = document.getElementById("theme-toggle-light-icon");
+    this.init();
+  }
+
+  init() {
+    this.themeToggleBtn.addEventListener("click", () => this.toggleTheme());
+    this.applyTheme(this.getTheme());
+  }
+
+  getTheme() {
+    return this.configManager.getConfig().theme || "system";
+  }
+
+  setTheme(theme) {
+    this.applyTheme(theme);
+    const config = this.configManager.getConfig();
+    config.theme = theme;
+    this.configManager.saveConfig(config);
+  }
+
+  toggleTheme() {
+    const currentTheme = this.getTheme();
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    this.setTheme(newTheme);
+  }
+
+  applyTheme(theme) {
+    if (
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      document.documentElement.classList.add("dark");
+      this.themeToggleLightIcon.classList.remove("hidden");
+      this.themeToggleDarkIcon.classList.add("hidden");
+    } else {
+      document.documentElement.classList.remove("dark");
+      this.themeToggleDarkIcon.classList.remove("hidden");
+      this.themeToggleLightIcon.classList.add("hidden");
+    }
+  }
+}
+
 class ConfigManager {
   constructor() {
     this.configKey = "apiConfig";
@@ -10,11 +58,13 @@ class ConfigManager {
       modelId: "",
       pocketJsonEndpoint: "https://pocketjson.pluja.dev",
       pocketJsonApiKey: "",
+      theme: "system", // light, dark, system
     };
     this.models = [];
     this.createToastElement();
     this.initializeConfigUI();
     this.handleUrlParams();
+    this.themeManager = new ThemeManager(this);
   }
 
   createToastElement() {
@@ -321,6 +371,9 @@ class ConfigManager {
 
     // After loading config, update the models list and pass the saved modelId
     this.updateModelsList(config.modelId);
+    if (this.themeManager) {
+        this.themeManager.applyTheme(config.theme);
+    }
   }
 
   bindEvents() {
@@ -336,11 +389,12 @@ class ConfigManager {
 
   handleSaveConfig() {
     const config = {
-      apiEndpoint: this.apiEndpointInput.value,
-      apiKey: this.apiKeyInput.value,
+      apiEndpoint: this.apiEndpointInput.value.trim(),
+      apiKey: this.apiKeyInput.value.trim(),
       modelId: this.modelIdInput.value,
-      pocketJsonEndpoint: this.pocketJsonEndpointInput.value || this.defaultConfig.pocketJsonEndpoint,
-      pocketJsonApiKey: this.pocketJsonApiKeyInput.value,
+      pocketJsonEndpoint: this.pocketJsonEndpointInput.value.trim(),
+      pocketJsonApiKey: this.pocketJsonApiKeyInput.value.trim(),
+      theme: this.themeManager.getTheme(),
     };
     this.saveConfig(config);
     this.modal.classList.add("hidden");
@@ -405,6 +459,7 @@ class ConfigManager {
             modelId: config.modelId,
             pocketJsonEndpoint: config.pocketJsonEndpoint || this.defaultConfig.pocketJsonEndpoint,
             pocketJsonApiKey: config.pocketJsonApiKey || "",
+            theme: config.theme || this.defaultConfig.theme,
           };
 
           // Save to localStorage

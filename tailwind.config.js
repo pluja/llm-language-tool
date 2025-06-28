@@ -1,8 +1,13 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require("tailwindcss/colors");
+
 export default {
+  darkMode: "class",
   content: ['./js/**/*.js', 'index.html'],
   theme: {
-    extend: {},
+    extend: {
+      colors: {},
+    },
   },
   plugins: [
     require('@tailwindcss/forms'),

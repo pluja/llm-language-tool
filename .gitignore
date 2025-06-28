@@ -1,3 +1,4 @@
 node_modules
 css/style.css
 version-bump.sh
+style.min.css
