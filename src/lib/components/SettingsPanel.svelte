@@ -155,6 +155,24 @@
           </p>
         </section>
 
+        <!-- URL Reader -->
+        <section>
+          <h3 class="mb-3 text-sm font-semibold text-text">URL Reader</h3>
+          <div>
+            <label for="jina-key" class="mb-1 block text-xs font-medium text-text-secondary">Jina API Key</label>
+            <input
+              id="jina-key"
+              type="password"
+              bind:value={config.jinaApiKey}
+              placeholder="jina_..."
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm text-text placeholder:text-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
+            />
+            <p class="mt-1 text-xs text-text-muted">
+              Required for fetching URL content. Get a free key at <a href="https://jina.ai/reader" class="text-primary hover:underline" target="_blank" rel="noopener">jina.ai/reader</a>
+            </p>
+          </div>
+        </section>
+
         <!-- Streaming -->
         <section>
           <div class="flex items-center justify-between">

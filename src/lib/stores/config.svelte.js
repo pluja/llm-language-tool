@@ -14,6 +14,7 @@ const DEFAULT_CONFIG = {
   apiKey: '',
   modelId: '',
   visionModelId: '',
+  jinaApiKey: '',
   pocketJsonEndpoint: 'https://pocketjson.pluja.dev',
   pocketJsonApiKey: '',
   theme: 'system',
