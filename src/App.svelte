@@ -16,7 +16,7 @@
   import { buildPrompt, buildVisionPrompt } from './lib/utils/prompts.js';
   import { callAPI, callAPIStream, callVisionAPIStream, callVisionAPI } from './lib/utils/api.js';
   import { isValidUrl, fetchUrlContent } from './lib/utils/jina.js';
-  import { createShare, buildShareUrl, getShareContent, parseShareHash } from './lib/utils/share.js';
+  import { createShare, getShareContent, isShareHash } from './lib/utils/share.js';
   import { marked } from 'marked';
 
   // Input state
@@ -89,7 +89,7 @@
 
     // Share view
     const hash = window.location.hash.slice(1);
-    if (hash.startsWith('share=')) {
+    if (hash && isShareHash(hash)) {
       const isPublicShare = hash.includes('?share');
       if (isPublicShare) {
         isShareView = true;
@@ -99,11 +99,8 @@
   }
 
   async function loadShareContent(hash) {
-    const parsed = parseShareHash(hash);
-    if (!parsed) return;
-
     try {
-      const content = await getShareContent(parsed.shareId, parsed.endpoint);
+      const content = await getShareContent(hash);
       if (content) {
         if (isShareView) {
           shareContent = content;
@@ -251,9 +248,9 @@
       case 'share':
         try {
           const share = await createShare(result.content, result.source || 'No source');
-          const url = buildShareUrl(share.id, share.endpoint);
-          await navigator.clipboard.writeText(url);
-          showToast('Share URL copied to clipboard', 'success');
+          await navigator.clipboard.writeText(share.url);
+          const method = share.method === 'inline' ? 'Self-contained' : 'PocketJSON';
+          showToast(`Share URL copied (${method})`, 'success');
         } catch (err) {
           showToast('Failed to create share', 'error');
         }

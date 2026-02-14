@@ -1,19 +1,82 @@
 /**
- * PocketJSON share utilities.
+ * Share utilities.
+ * Supports two modes:
+ *   1. Self-contained: content compressed and encoded directly in the URL hash
+ *   2. PocketJSON: content stored externally (for large content that exceeds URL limits)
  */
 
 import { config } from '../stores/config.svelte.js';
 
+// ~8KB is a safe URL length limit across browsers
+const MAX_URL_LENGTH = 8000;
+
+/**
+ * Compress a string using the CompressionStream API (gzip),
+ * then base64url-encode it for safe use in URLs.
+ */
+async function compressAndEncode(text) {
+  const encoder = new TextEncoder();
+  const stream = new Blob([encoder.encode(text)])
+    .stream()
+    .pipeThrough(new CompressionStream('gzip'));
+
+  const compressed = await new Response(stream).arrayBuffer();
+  const bytes = new Uint8Array(compressed);
+
+  // base64url encode (URL-safe, no padding)
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/**
+ * Decode and decompress a base64url-gzip string back to text.
+ */
+async function decodeAndDecompress(encoded) {
+  // Restore standard base64 from base64url
+  const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  const stream = new Blob([bytes])
+    .stream()
+    .pipeThrough(new DecompressionStream('gzip'));
+
+  return await new Response(stream).text();
+}
+
+/**
+ * Create a share. Tries self-contained URL first, falls back to PocketJSON.
+ * Returns { url, method } where method is 'inline' or 'pocketjson'.
+ */
 export async function createShare(content, source = 'No source') {
+  const payload = JSON.stringify({ text: content, source });
+
+  // Try self-contained URL first
+  try {
+    const compressed = await compressAndEncode(payload);
+    const url = `${window.location.origin}${window.location.pathname}#d=${compressed}?share`;
+
+    if (url.length <= MAX_URL_LENGTH) {
+      return { url, method: 'inline' };
+    }
+  } catch {
+    // CompressionStream not supported or failed, fall through to PocketJSON
+  }
+
+  // Fall back to PocketJSON for large content
   const pjEndpoint = config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
   const pjApiKey = config.pocketJsonApiKey;
 
   const headers = { 'Content-Type': 'application/json' };
   if (pjApiKey) headers['X-API-Key'] = pjApiKey;
 
-  const body = {
-    content: { text: content, source },
-  };
+  const body = { content: { text: content, source } };
 
   const queryParams = pjApiKey ? '?expiry=never' : '';
   const response = await fetch(`${pjEndpoint}${queryParams}`, {
@@ -25,36 +88,62 @@ export async function createShare(content, source = 'No source') {
   if (!response.ok) throw new Error(`PocketJSON error: ${response.statusText}`);
 
   const data = await response.json();
+  const encodedEndpoint = encodeURIComponent(pjEndpoint);
+  const url = `${window.location.origin}${window.location.pathname}#share=${data.id}@${encodedEndpoint}?share`;
+
   return {
-    id: data.id,
+    url,
+    method: 'pocketjson',
     expiresAt: data.expires_at,
-    endpoint: pjEndpoint,
   };
 }
 
-export async function getShareContent(id, endpoint) {
-  const pjEndpoint = endpoint || config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
-  const clean = pjEndpoint.replace(/\/+$/, '');
+/**
+ * Retrieve shared content from a URL hash.
+ * Supports both inline (d=...) and PocketJSON (share=...) formats.
+ */
+export async function getShareContent(hash) {
+  if (!hash) return null;
 
-  const response = await fetch(`${clean}/${id}`);
-  if (!response.ok) throw new Error(`Failed to fetch share: ${response.statusText}`);
+  const cleanHash = hash.split('?')[0];
 
-  const data = await response.json();
-  return data.content;
+  // Inline self-contained share
+  if (cleanHash.startsWith('d=')) {
+    try {
+      const compressed = cleanHash.slice(2);
+      const json = await decodeAndDecompress(compressed);
+      return JSON.parse(json);
+    } catch (err) {
+      console.error('Failed to decode inline share:', err);
+      return null;
+    }
+  }
+
+  // PocketJSON share
+  if (cleanHash.startsWith('share=')) {
+    const [shareId, endpoint] = cleanHash.replace('share=', '').split('@');
+    const pjEndpoint = endpoint
+      ? decodeURIComponent(endpoint)
+      : config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
+
+    try {
+      const clean = pjEndpoint.replace(/\/+$/, '');
+      const response = await fetch(`${clean}/${shareId}`);
+      if (!response.ok) throw new Error(`Failed to fetch share: ${response.statusText}`);
+      const data = await response.json();
+      return data.content;
+    } catch (err) {
+      console.error('Failed to fetch PocketJSON share:', err);
+      return null;
+    }
+  }
+
+  return null;
 }
 
-export function buildShareUrl(shareId, endpoint) {
-  const encoded = encodeURIComponent(endpoint);
-  return `${window.location.origin}${window.location.pathname}#share=${shareId}@${encoded}?share`;
-}
-
-export function parseShareHash(hash) {
-  if (!hash || !hash.startsWith('share=')) return null;
-
-  const parts = hash.split('?')[0];
-  const [shareId, endpoint] = parts.replace('share=', '').split('@');
-  return {
-    shareId,
-    endpoint: endpoint ? decodeURIComponent(endpoint) : null,
-  };
+/**
+ * Check if a hash represents a share URL (either format).
+ */
+export function isShareHash(hash) {
+  return hash.startsWith('share=') || hash.startsWith('d=');
 }
