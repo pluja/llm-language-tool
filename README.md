@@ -1,43 +1,126 @@
-# Svelte + Vite
+# LLM LangTool
 
-This template should help get you started developing with Svelte in Vite.
+A privacy-focused, client-side text processing tool powered by Large Language Models. Translate, summarize, correct, and explain text using any OpenAI-compatible API.
 
-## Recommended IDE Setup
+**Live demo:** [langtool.pluja.dev](https://langtool.pluja.dev)
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+## Features
 
-## Need an official Svelte framework?
+- **Translate** text between multiple languages with auto-detection
+- **Summarize** long articles and documents
+- **Correct** grammar and style with configurable intensity
+- **Explain** complex content in structured breakdowns
+- **Process URLs** by fetching and extracting content automatically
+- **Photo/Vision support** upload or capture images for translation
+- **Streaming responses** watch results generate in real-time
+- **Result history** browse and restore previous results
+- **Shareable links** self-contained URLs with no external dependencies
+- **Dark mode** with system preference detection
+- **PWA-ready** install as a standalone app
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+## Privacy First
 
-## Technical considerations
+All processing happens in your browser. Your text and API keys never pass through any intermediary server. You connect directly to your chosen LLM provider.
 
-**Why use this over SvelteKit?**
+## Setup
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+### Quick Start
 
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `checkJs` in the JS template?**
-
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
+```bash
+npm install
+npm run dev
 ```
+
+Open `http://localhost:5173` in your browser.
+
+### Configuration
+
+1. Open Settings (gear icon)
+2. Enter your OpenAI-compatible API endpoint (e.g., `https://api.openai.com/v1`)
+3. Enter your API key
+4. Select a model from the dropdown
+
+The app works with any OpenAI-compatible provider:
+- [OpenAI](https://openai.com)
+- [ppq.ai](https://ppq.ai)
+- [nano-gpt.com](https://nano-gpt.com)
+- [Ollama](https://ollama.ai) (local)
+- Any self-hosted compatible API
+
+### URL Content Fetching
+
+To fetch content from URLs, you need a Jina AI Reader API key:
+1. Get a free key at [jina.ai/reader](https://jina.ai/reader)
+2. Add it in Settings under "URL Reader"
+
+## Usage
+
+### Basic Flow
+
+1. Select a task: Translate, Summarize, or Correct
+2. Paste text or a URL into the input area
+3. For translation, choose the target language
+4. Click Send or press Ctrl+Enter
+5. View the result and take further actions
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Enter` | Process text |
+| `Ctrl+,` | Open settings |
+| `Escape` | Close panels |
+
+### Working with Results
+
+Each result provides quick actions:
+- **Copy** - Copy to clipboard
+- **Share** - Generate a shareable URL
+- **Summarize** - Create a summary of the result
+- **Explain** - Get a detailed explanation
+- **Edit** - Load the result back into the input for refinement
+
+### Sharing Results
+
+Click Share on any result to generate a self-contained URL. The content is compressed and encoded directly in the URL hash. No external service needed. For large content, the app falls back to PocketJSON storage.
+
+### Settings Sharing
+
+Click "Share Settings" in the settings panel to generate a URL that pre-configures the app with your API settings. Useful for onboarding team members or syncing across devices.
+
+## Building for Production
+
+```bash
+npm run build
+```
+
+Output goes to the `dist/` directory. Deploy to any static hosting service.
+
+### Cloudflare Pages
+
+- Build command: `npm run build`
+- Build output directory: `dist`
+
+## Development
+
+Built with:
+- [Svelte 5](https://svelte.dev) - UI framework with runes reactivity
+- [Vite](https://vite.dev) - Build tool
+- [Tailwind CSS v4](https://tailwindcss.com) - Styling
+
+Project structure:
+
+```
+src/
+  lib/
+    components/    # Svelte UI components
+    stores/        # Reactive state (config, ui, history)
+    utils/         # API, prompts, sharing logic
+  app.css          # Tailwind config and custom styles
+  App.svelte       # Main application
+  main.js          # Entry point
+```
+
+## License
+
+MIT
