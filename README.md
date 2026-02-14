@@ -1,150 +1,43 @@
-# LLM Language Tool 🌐
+# Svelte + Vite
 
-A lightweight, browser-based text processing tool powered by Large Language Models (LLMs). Process, translate, and analyze text directly in your browser without any backend or server dependencies.
+This template should help get you started developing with Svelte in Vite.
 
-### [Click here](https://langtool.pluja.dev/#share=7a0ce61b4da5623e767197d85ac44ac8@https%3A%2F%2Fpocketjson.pluja.dev?share) to see an example translation of [this blog post](https://blog.kycnot.me/p/kyc-no-thanks) to French.
+## Recommended IDE Setup
 
-## 🚀 Try it out!
+[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
 
-Visit the public instance hosted on Cloudflare Pages:
+## Need an official Svelte framework?
 
-[https://langtool.pluja.dev](https://langtool.pluja.dev)
+Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
 
-Add your API Key for an OpenAI-compatible API (ollama, ppq.ai, nano-gpt.com, llama.cpp, openai...)
+## Technical considerations
 
-![Screenshot of the User Interface](icons/screenshot.png)
+**Why use this over SvelteKit?**
 
-## ✨ Features
+- It brings its own routing solution which might not be preferable for some users.
+- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
 
-- **Text Processing**
-  - Process text directly from input or fetch from URLs
-  - Translation between multiple languages
-  - Text summarization and correction
-  - Translation explanations and summaries
+This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
 
-- **Privacy & Flexibility**
-  - 100% client-side processing
-  - Configure your own LLM endpoints and API keys
-  - Data Privacy & Security:
-    - All operations occur client-side - your API keys and queries never leave your browser
-    - Queries are sent directly to your preferred LLM provider (supports self-hosted models with openai-compatible backends)
-    - Sharing functionality uses [PocketJSON](https://pocketjson.pluja.dev) (optional, can be self-hosted)
+Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
 
-- **Sharing**
-  - Share your results with a clean, distraction-free view
-    - Generate shareable URLs for your processed content
-    - Recipients see a simplified interface without tooling
-    - Easy switch between simple view and full application
-    - Base64 encoded content for sharing
-  - Share configurations across devices via URL
-    - Share language preferences and API configurations
-    - Export/Import settings using a URL
-    - Base64 encoded settings for secure sharing
+**Why include `.vscode/extensions.json`?**
 
-- **Developer Friendly**
-  - Pure JavaScript and HTML implementation
-  - Zero runtime dependencies
-  - Modern UI with Tailwind CSS
-  - URL parameter support for automation
+Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
 
+**Why enable `checkJs` in the JS template?**
 
-## Self-Hosting / Local Development
+It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/pluja/llm-language-tool.git
-   ```
+**Why is HMR not preserving my local component state?**
 
-2. Navigate to the project directory:
-   ```bash
-   cd llm-language-tool
-   ```
+HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
 
-3. Start a local server:
-   ```bash
-   # Using Python (recommended)
-   python3 -m http.server 8000
+If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
 
-   # Or Using Docker
-   docker run --rm -p 8000:8000 -v $(pwd):/srv --workdir /srv python:3-alpine python -m http.server 8000 --bind 0.0.0.0
-
-   # Or Using Docker-Compose
-   docker compose up -d
-   ```
-
-4. Open your browser and visit `http://localhost:8000`
-
-## 🔧 Configuration
-
-The tool supports various configuration options through the UI:
-- LLM endpoint configuration
-- API key management
-- Language model
-- Language preferences
-- UI customization
-
-### Sharing Settings
-
-You can easily share your configuration with other devices or users:
-
-1. Click the Settings button (⚙️)
-2. Click "Share Settings" in the modal
-3. A URL containing your encoded settings will be copied to your clipboard
-4. Share this URL or save it for later use
-5. When opened, the URL will automatically import all settings you configured
-
-The shared configuration includes:
-- API endpoint
-- API key
-- Model ID
-- Custom language list
-
-### Sharing Results
-
-Share your processed content with others:
-
-1. Process any text using the available tools
-2. Click the "Share" button on the result
-3. A URL will be copied to your clipboard
-4. Recipients will see a clean, simplified view of the content
-5. They can access the full application via the "View Full App" button
-
-## 🔍 URL Parameters
-
-Automate tasks using URL parameters:
-
+```js
+// store.js
+// An extremely simple external store
+import { writable } from 'svelte/store'
+export default writable(0)
 ```
-https://langtool.pluja.dev?content=https://example.com&task=translate&output=spanish
-```
-
-Supported parameters:
-- `content`: Text or URL to process
-- `task`: Operation to perform (`translate` or `summarize`)
-- `output`: Target language, only used with `translate` task
-- `config`: Base64 encoded configuration (automatically generated via Share Settings)
-- `#<base64-content>?share`: Share view with encoded content (automatically generated via Share button)
-
-## 🛠️ Technical Stack
-
-- **Frontend**: Vanilla JavaScript and HTML
-- **Styling**: Tailwind CSS with plugins
-
-## 👥 Contributing
-
-Contributions are welcome! This project was initially created with the help of LLMs and has room for improvements and new features.
-
-To contribute:
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a Pull Request
-
-## 💡 Inspiration
-
-This project draws inspiration from:
-- [Kagi Translate](https://translate.kagi.com)
-- [Jina AI](https://r.jina.ai)
-
-## 📄 License
-
-MIT
