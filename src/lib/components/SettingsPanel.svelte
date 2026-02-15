@@ -39,9 +39,10 @@
   function handleShareConfig() {
     const encoded = encodeConfig();
     const url = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('Settings URL copied to clipboard', 'success');
-    });
+    navigator.clipboard.writeText(url).then(
+      () => showToast('Settings URL copied to clipboard', 'success'),
+      () => showToast('Failed to copy to clipboard', 'error'),
+    );
   }
 
   function handleAddLanguage() {

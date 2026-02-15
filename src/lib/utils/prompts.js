@@ -109,19 +109,19 @@ ${text}`;
 }
 
 /**
- * Build a vision prompt for image-based translation/processing.
+ * Build a vision prompt for file-based (image/PDF/document) processing.
  */
 export function buildVisionPrompt(task, options = {}) {
   switch (task) {
     case 'translate':
-      return `Extract all text from this image, preserving the original formatting as closely as possible using Markdown. Then translate the extracted text to ${options.outputLang || 'English'}. Return ONLY the translated text in Markdown format, no explanations.`;
+      return `Extract all text from this file/image, preserving the original formatting as closely as possible using Markdown. Then translate the extracted text to ${options.outputLang || 'English'}. Return ONLY the translated text in Markdown format, no explanations.`;
     case 'summarize':
-      return `Extract and summarize the content from this image. Return a concise summary in Markdown format, no explanations.`;
+      return `Extract and summarize the content from this file/image. Return a concise summary in Markdown format, no explanations.`;
     case 'correct':
-      return `Extract all text from this image and correct it with ${options.level || 'medium'} correction level in a ${options.style || 'formal'} style. Return ONLY the corrected text in Markdown format.`;
+      return `Extract all text from this file/image and correct it with ${options.level || 'medium'} correction level in a ${options.style || 'formal'} style. Return ONLY the corrected text in Markdown format.`;
     case 'explain':
-      return `Analyze and explain the content shown in this image. Provide a structured explanation in Markdown format.`;
+      return `Analyze and explain the content shown in this file/image. Provide a structured explanation in Markdown format.`;
     default:
-      return `Describe and analyze the content of this image in detail using Markdown format.`;
+      return `Describe and analyze the content of this file/image in detail using Markdown format.`;
   }
 }

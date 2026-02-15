@@ -17,16 +17,25 @@
   import { callAPI, callAPIStream, callVisionAPIStream, callVisionAPI } from './lib/utils/api.js';
   import { isValidUrl, fetchUrlContent } from './lib/utils/jina.js';
   import { createShare, getShareContent, isShareHash } from './lib/utils/share.js';
+  import { getFileCategory, readAsText, readAsArrayBuffer, arrayBufferToBase64 } from './lib/utils/files.js';
   import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
 
   // Input state
   let inputText = $state('');
-  let imageFile = $state(null);
-  let imagePreview = $state(null);
+  let attachedFile = $state(null);
+  let filePreview = $state(null);
 
   // Task options
   let inputLang = $state('auto');
   let outputLang = $state(config.defaultLanguage || 'english');
+
+  // Keep outputLang in sync when default language changes in settings
+  $effect(() => {
+    if (config.defaultLanguage) {
+      outputLang = config.defaultLanguage;
+    }
+  });
   let correctionLevel = $state('medium');
   let correctionStyle = $state('formal');
 
@@ -83,7 +92,7 @@
       setTask(task);
       if (output) outputLang = output;
       // Auto-process after a tick
-      setTimeout(() => processText(), 100);
+      setTimeout(() => processText().catch(err => showToast(`Error: ${err.message}`, 'error')), 100);
       return;
     }
 
@@ -128,11 +137,11 @@
       return;
     }
 
-    const hasImage = imageFile !== null;
+    const hasFile = attachedFile !== null;
     const hasText = inputText.trim().length > 0;
 
-    if (!hasText && !hasImage) {
-      showToast('Enter some text or upload a photo', 'warning');
+    if (!hasText && !hasFile) {
+      showToast('Enter some text or attach a file', 'warning');
       return;
     }
 
@@ -153,28 +162,58 @@
 
       let resultText = '';
 
-      if (hasImage) {
-        // Vision processing
-        const imageBase64 = imagePreview.split(',')[1];
-        const mimeType = imageFile.type || 'image/jpeg';
-        const visionPrompt = buildVisionPrompt(task, {
-          outputLang, level: correctionLevel, style: correctionStyle
-        });
+      if (hasFile) {
+        const fileCategory = getFileCategory(attachedFile);
 
-        const fullPrompt = hasText
-          ? `${visionPrompt}\n\nAdditional context: ${textContent}`
-          : visionPrompt;
+        if (fileCategory === 'text') {
+          // Text files: read as text and process normally
+          setLoading(true, 'Reading file...');
+          const fileText = await readAsText(attachedFile);
+          const combined = hasText
+            ? `${textContent}\n\n--- File: ${attachedFile.name} ---\n\n${fileText}`
+            : fileText;
 
-        if (config.streamingEnabled) {
-          resultText = await streamResult(async function* () {
-            yield* callVisionAPIStream(fullPrompt, imageBase64, mimeType);
-          }, task, source);
+          const prompt = buildPrompt(task, combined, {
+            inputLang, outputLang, level: correctionLevel, style: correctionStyle,
+            defaultLanguage: config.defaultLanguage,
+          });
+
+          setLoading(true, `Processing ${task}...`);
+          if (config.streamingEnabled) {
+            resultText = await streamResult(async function* () {
+              yield* callAPIStream(prompt);
+            }, task, source);
+          } else {
+            resultText = await callAPI(prompt);
+            addResult(resultText, task, source);
+          }
         } else {
-          resultText = await callVisionAPI(fullPrompt, imageBase64, mimeType);
-          addResult(resultText, task, source);
+          // Images, PDFs, and other files: send as base64 to vision model
+          setLoading(true, 'Reading file...');
+          const buffer = await readAsArrayBuffer(attachedFile);
+          const fileBase64 = arrayBufferToBase64(buffer);
+          const mimeType = attachedFile.type || 'application/octet-stream';
+
+          const visionPrompt = buildVisionPrompt(task, {
+            outputLang, level: correctionLevel, style: correctionStyle
+          });
+
+          const fullPrompt = hasText
+            ? `${visionPrompt}\n\nAdditional context: ${textContent}`
+            : visionPrompt;
+
+          setLoading(true, `Processing ${task}...`);
+          if (config.streamingEnabled) {
+            resultText = await streamResult(async function* () {
+              yield* callVisionAPIStream(fullPrompt, fileBase64, mimeType);
+            }, task, source);
+          } else {
+            resultText = await callVisionAPI(fullPrompt, fileBase64, mimeType);
+            addResult(resultText, task, source);
+          }
         }
       } else {
-        // Text processing
+        // Text-only processing
         const prompt = buildPrompt(task, textContent, {
           inputLang, outputLang, level: correctionLevel, style: correctionStyle,
           defaultLanguage: config.defaultLanguage,
@@ -242,8 +281,12 @@
   async function handleResultAction(action, result) {
     switch (action) {
       case 'copy':
-        await navigator.clipboard.writeText(result.content);
-        showToast('Copied to clipboard', 'success');
+        try {
+          await navigator.clipboard.writeText(result.content);
+          showToast('Copied to clipboard', 'success');
+        } catch {
+          showToast('Failed to copy to clipboard', 'error');
+        }
         break;
 
       case 'share':
@@ -263,32 +306,14 @@
         await processText();
         break;
 
-      case 'explain':
+      case 'explain': {
         inputText = result.content;
-        setTask('summarize'); // Explain uses the same flow
-        // Override task for the explain prompt
+        const prevTask = ui.currentTask;
         ui.currentTask = 'explain';
-        const prompt = buildPrompt('explain', result.content, {
-          defaultLanguage: config.defaultLanguage,
-        });
-        setLoading(true, 'Explaining...');
-        try {
-          if (config.streamingEnabled) {
-            const text = await streamResult(async function* () {
-              yield* callAPIStream(prompt);
-            }, 'explain', null);
-            addToHistory({ task: 'explain', input: result.content.slice(0, 200), result: text, source: null });
-          } else {
-            const text = await callAPI(prompt);
-            addResult(text, 'explain', null);
-            addToHistory({ task: 'explain', input: result.content.slice(0, 200), result: text, source: null });
-          }
-        } catch (err) {
-          showToast(`Error: ${err.message}`, 'error');
-        } finally {
-          setLoading(false);
-        }
+        await processText();
+        ui.currentTask = prevTask;
         break;
+      }
 
       case 'edit':
         inputText = result.content;
@@ -339,7 +364,7 @@
     {#if shareContent}
       <div class="rounded-lg border border-border bg-surface p-6">
         <div class="prose-result text-sm">
-          {@html marked.parse(typeof shareContent === 'object' ? shareContent.text : shareContent)}
+          {@html DOMPurify.sanitize(/** @type {string} */ (marked.parse(typeof shareContent === 'object' ? shareContent.text : shareContent)))}
         </div>
       </div>
     {:else}
@@ -368,8 +393,8 @@
       <!-- Input Area -->
       <InputArea
         bind:value={inputText}
-        bind:imageFile
-        bind:imagePreview
+        bind:attachedFile
+        bind:filePreview
         onsubmit={processText}
         disabled={ui.isLoading}
       />

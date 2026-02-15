@@ -3,7 +3,7 @@
   import { ui, closeHistory } from '../stores/ui.svelte.js';
   import { history, removeFromHistory, clearHistory } from '../stores/history.svelte.js';
 
-  let { onrestore } = $props();
+  let { onrestore = undefined } = $props();
 
   function handleRestore(entry) {
     onrestore?.(entry);

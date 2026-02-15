@@ -2,13 +2,9 @@
   import { toggleTheme, getEffectiveTheme, config } from '../stores/config.svelte.js';
   import { toggleSettings, toggleHistory } from '../stores/ui.svelte.js';
 
-  let isDark = $derived(getEffectiveTheme() === 'dark');
-
-  // Re-derive when config.theme changes
-  $effect(() => {
-    // Access config.theme to track it
-    config.theme;
-    isDark = getEffectiveTheme() === 'dark';
+  let isDark = $derived.by(() => {
+    config.theme; // explicit dependency tracking
+    return getEffectiveTheme() === 'dark';
   });
 </script>
 

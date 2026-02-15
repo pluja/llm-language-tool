@@ -1,0 +1,35 @@
+{
+  "name": "LLM LangTool",
+  "short_name": "LangTool",
+  "description": "Translate, summarize, correct, and explain text using LLMs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0f1a",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "/noodle-196x196.png",
+      "sizes": "196x196",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/noodle-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/noodle-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/noodle-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
