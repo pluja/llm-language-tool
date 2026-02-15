@@ -6,6 +6,7 @@ A privacy-focused, client-side only text processing tool powered by Large Langua
 
 ## Features
 
+- **Zero backend** everything runs and stores locally in your browser. No accounts, no databases, no server infrastructure.
 - **Translate** text between multiple languages with auto-detection
 - **Summarize** long articles and documents
 - **Correct** grammar and style with configurable intensity
@@ -17,7 +18,6 @@ A privacy-focused, client-side only text processing tool powered by Large Langua
 - **Shareable links** self-contained URLs with no external dependencies
 - **Dark mode** with system preference detection
 - **PWA-ready** install as a standalone app
-- **Zero backend** everything runs and stores locally in your browser. No accounts, no databases, no server infrastructure.
 
 ## Privacy First
 
