@@ -16,6 +16,13 @@
       : models
   );
 
+  // Auto-fetch models when settings panel opens
+  $effect(() => {
+    if (ui.settingsOpen && config.apiEndpoint && models.length === 0) {
+      loadModels();
+    }
+  });
+
   async function loadModels() {
     if (!config.apiEndpoint) return;
     fetchingModels = true;
@@ -123,9 +130,13 @@
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
               >
                 {#if fetchingModels}
-                  <option value="">Loading models...</option>
+                  <option value={config.modelId}>{config.modelId || 'Loading models...'}</option>
                 {:else if filteredModels.length === 0}
-                  <option value="">No models available</option>
+                  {#if config.modelId}
+                    <option value={config.modelId}>{config.modelId}</option>
+                  {:else}
+                    <option value="">No models available</option>
+                  {/if}
                 {:else}
                   {#each filteredModels as model (model.id)}
                     <option value={model.id}>{model.name}</option>
@@ -141,9 +152,13 @@
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
               >
                 <option value="">Same as above</option>
-                {#each filteredModels as model (model.id)}
-                  <option value={model.id}>{model.name}</option>
-                {/each}
+                {#if filteredModels.length > 0}
+                  {#each filteredModels as model (model.id)}
+                    <option value={model.id}>{model.name}</option>
+                  {/each}
+                {:else if config.visionModelId}
+                  <option value={config.visionModelId}>{config.visionModelId}</option>
+                {/if}
               </select>
               <p class="mt-1 text-xs text-text-muted">Used for photo/image processing</p>
             </div>
