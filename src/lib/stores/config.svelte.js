@@ -17,6 +17,7 @@ const DEFAULT_CONFIG = {
   jinaApiKey: '',
   pocketJsonEndpoint: 'https://pocketjson.pluja.dev',
   pocketJsonApiKey: '',
+  defaultLanguage: '',
   theme: 'system',
   streamingEnabled: true,
 };

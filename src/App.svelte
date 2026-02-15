@@ -26,7 +26,7 @@
 
   // Task options
   let inputLang = $state('auto');
-  let outputLang = $state('english');
+  let outputLang = $state(config.defaultLanguage || 'english');
   let correctionLevel = $state('medium');
   let correctionStyle = $state('formal');
 
@@ -176,7 +176,8 @@
       } else {
         // Text processing
         const prompt = buildPrompt(task, textContent, {
-          inputLang, outputLang, level: correctionLevel, style: correctionStyle
+          inputLang, outputLang, level: correctionLevel, style: correctionStyle,
+          defaultLanguage: config.defaultLanguage,
         });
 
         if (config.streamingEnabled) {
@@ -267,7 +268,9 @@
         setTask('summarize'); // Explain uses the same flow
         // Override task for the explain prompt
         ui.currentTask = 'explain';
-        const prompt = buildPrompt('explain', result.content);
+        const prompt = buildPrompt('explain', result.content, {
+          defaultLanguage: config.defaultLanguage,
+        });
         setLoading(true, 'Explaining...');
         try {
           if (config.streamingEnabled) {

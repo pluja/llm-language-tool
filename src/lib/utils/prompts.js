@@ -12,11 +12,11 @@ export function buildPrompt(task, content, options = {}) {
     case 'translate':
       return buildTranslatePrompt(content, options);
     case 'summarize':
-      return buildSummarizePrompt(content);
+      return buildSummarizePrompt(content, options);
     case 'correct':
       return buildCorrectPrompt(content, options);
     case 'explain':
-      return buildExplainPrompt(content);
+      return buildExplainPrompt(content, options);
     default:
       throw new Error(`Unknown task: ${task}`);
   }
@@ -38,12 +38,15 @@ YOU MUST reply with only the translation without any introductory phrases, expla
 ${text}`;
 }
 
-function buildSummarizePrompt(content) {
+function buildSummarizePrompt(content, { defaultLanguage } = {}) {
   const text = extractContent(content);
+  const langInstruction = defaultLanguage
+    ? `- Write the summary in ${defaultLanguage}`
+    : `- Maintain the original language of the source text`;
   return `You are an expert summarization specialist with deep expertise in content analysis and information distillation. Your task is to create a comprehensive yet concise summary that captures the essence and critical details of the provided text.
 
 Requirements:
-- Maintain the original language of the source text
+${langInstruction}
 - Deliver a maximum of two well-structured paragraphs. Keep it brief and concise.
 - Preserve all essential facts, key arguments, and main themes
 - Ensure factual accuracy and objective presentation
@@ -80,12 +83,15 @@ Text to enhance:
 ${text}`;
 }
 
-function buildExplainPrompt(content) {
+function buildExplainPrompt(content, { defaultLanguage } = {}) {
   const text = extractContent(content);
+  const langInstruction = defaultLanguage
+    ? `- Respond in ${defaultLanguage}`
+    : `- Respond in the same language as the source text`;
   return `You are an expert content analyst and educator with deep expertise in breaking down complex information into clear, comprehensive explanations. Your task is to provide a thorough, well-structured explanation that helps users fully understand the provided content.
 
 Requirements:
-- Respond in the same language as the source text
+${langInstruction}
 - Use clear, structured Markdown formatting with appropriate headings, bullet points, and emphasis
 - Break down complex concepts into digestible components
 - Provide relevant context, background information, and connections

@@ -222,6 +222,20 @@
         <!-- Language Management -->
         <section>
           <h3 class="mb-3 text-sm font-semibold text-text">Languages</h3>
+          <div class="mb-3">
+            <label for="default-lang" class="mb-1 block text-xs font-medium text-text-secondary">Default Language</label>
+            <select
+              id="default-lang"
+              bind:value={config.defaultLanguage}
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
+            >
+              <option value="">None</option>
+              {#each languages as lang}
+                <option value={lang.toLowerCase()}>{lang}</option>
+              {/each}
+            </select>
+            <p class="mt-1 text-xs text-text-muted">Used as translation target and summary language</p>
+          </div>
           <div class="flex gap-2">
             <input
               type="text"
