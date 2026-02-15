@@ -1,8 +1,8 @@
 # LLM LangTool
 
-A privacy-focused, client-side text processing tool powered by Large Language Models. Translate, summarize, correct, and explain text using any OpenAI-compatible API.
+A privacy-focused, client-side only text processing tool powered by Large Language Models. Translate, summarize, correct, and explain text using any OpenAI-compatible API.
 
-**Live demo:** [langtool.pluja.dev](https://langtool.pluja.dev)
+**Public instance:** [langtool.pluja.dev](https://langtool.pluja.dev)
 
 ## Features
 
@@ -17,10 +17,11 @@ A privacy-focused, client-side text processing tool powered by Large Language Mo
 - **Shareable links** self-contained URLs with no external dependencies
 - **Dark mode** with system preference detection
 - **PWA-ready** install as a standalone app
+- **Zero backend** everything runs and stores locally in your browser. No accounts, no databases, no server infrastructure.
 
 ## Privacy First
 
-All processing happens in your browser. Your text and API keys never pass through any intermediary server. You connect directly to your chosen LLM provider.
+All processing happens in your browser. Your text and API keys never pass through any intermediary server. You connect directly to your chosen LLM provider. Settings, history, and preferences are stored in your browser's localStorage; nothing is ever sent to a backend.
 
 ## Setup
 
