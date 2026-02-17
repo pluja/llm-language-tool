@@ -27,7 +27,7 @@
   {/if}
 
   <div class="px-4 py-4">
-    <div class="prose-result text-sm {isStreaming ? 'streaming-cursor' : ''}">
+    <div class="prose-result text-lg {isStreaming ? 'streaming-cursor' : ''}">
       {@html htmlContent}
     </div>
   </div>

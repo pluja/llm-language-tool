@@ -57,6 +57,7 @@ body {
 /* Prose overrides for markdown content */
 .prose-result {
   @apply leading-relaxed;
+  font-family: "Adamina", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 .prose-result h1, .prose-result h2, .prose-result h3,
