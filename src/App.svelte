@@ -290,7 +290,7 @@
 
       case 'share':
         try {
-          const share = await createShare(result.content, result.source || 'No source');
+          const share = await createShare(result.content, result.source || 'No source', result.task);
           await navigator.clipboard.writeText(share.url);
           const method = share.method === 'inline' ? 'Self-contained' : 'PocketJSON';
           showToast(`Share URL copied (${method})`, 'success');
@@ -358,10 +358,28 @@
       >
         Open Full App
       </button>
-      <span class="text-sm text-text-muted">Shared Content</span>
     </div>
     {#if shareContent}
       <div class="rounded-lg border border-border bg-surface p-6">
+        {#if typeof shareContent === 'object' && shareContent.task}
+          <div class="mb-4 flex items-center gap-2 border-b border-border pb-4">
+            <span class="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              {shareContent.task.charAt(0).toUpperCase() + shareContent.task.slice(1)}
+            </span>
+            {#if shareContent.source && shareContent.source !== 'No source'}
+              <span class="text-xs text-text-muted">of</span>
+              <a
+                href={shareContent.source}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="truncate text-xs text-primary hover:underline"
+                style="max-width: 300px;"
+              >
+                {shareContent.source}
+              </a>
+            {/if}
+          </div>
+        {/if}
         <div class="prose-result text-sm">
           {@html parseMarkdown(typeof shareContent === 'object' ? shareContent.text : shareContent)}
         </div>

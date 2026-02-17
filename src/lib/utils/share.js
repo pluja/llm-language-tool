@@ -59,8 +59,8 @@ async function decodeAndDecompress(encoded) {
  * Falls back to self-contained URL if PocketJSON is disabled or fails.
  * Returns { url, method } where method is 'inline' or 'pocketjson'.
  */
-export async function createShare(content, source = 'No source') {
-  const payload = JSON.stringify({ text: content, source });
+export async function createShare(content, source = 'No source', task = null) {
+  const payload = JSON.stringify({ text: content, source, task });
 
   // If PocketJSON is disabled, always use self-contained
   if (!config.pocketJsonEnabled) {
@@ -93,7 +93,7 @@ export async function createShare(content, source = 'No source') {
   const headers = { 'Content-Type': 'application/json' };
   if (pjApiKey) headers['X-API-Key'] = pjApiKey;
 
-  const body = { content: { text: content, source } };
+  const body = { content: { text: content, source, task } };
 
   const queryParams = pjApiKey ? '?expiry=never' : '';
   const response = await fetch(`${pjEndpoint}${queryParams}`, {
