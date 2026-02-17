@@ -17,6 +17,14 @@
   --color-warning: #f59e0b;
 }
 
+@font-face {
+  font-family: "Adamina";
+  src: url("/fonts/Adamina-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Base styles */
