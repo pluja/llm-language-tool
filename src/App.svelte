@@ -18,8 +18,7 @@
   import { isValidUrl, fetchUrlContent } from './lib/utils/jina.js';
   import { createShare, getShareContent, isShareHash } from './lib/utils/share.js';
   import { getFileCategory, readAsText, readAsArrayBuffer, arrayBufferToBase64 } from './lib/utils/files.js';
-  import { marked } from 'marked';
-  import DOMPurify from 'dompurify';
+  import { parseMarkdown } from './lib/utils/markdown.js';
 
   // Input state
   let inputText = $state('');
@@ -364,7 +363,7 @@
     {#if shareContent}
       <div class="rounded-lg border border-border bg-surface p-6">
         <div class="prose-result text-sm">
-          {@html DOMPurify.sanitize(/** @type {string} */ (marked.parse(typeof shareContent === 'object' ? shareContent.text : shareContent)))}
+          {@html parseMarkdown(typeof shareContent === 'object' ? shareContent.text : shareContent)}
         </div>
       </div>
     {:else}

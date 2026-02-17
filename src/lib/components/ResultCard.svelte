@@ -1,11 +1,10 @@
 <script>
-  import { marked } from 'marked';
-  import DOMPurify from 'dompurify';
   import { fade, slide } from 'svelte/transition';
+  import { parseMarkdown } from '../utils/markdown.js';
 
   let { result, isStreaming = false, onaction = undefined } = $props();
 
-  let htmlContent = $derived(result?.content ? DOMPurify.sanitize(/** @type {string} */ (marked.parse(result.content))) : '');
+  let htmlContent = $derived(result?.content ? parseMarkdown(result.content) : '');
 
   function handleAction(action) {
     onaction?.(action, result);
