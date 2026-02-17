@@ -17,6 +17,7 @@ const DEFAULT_CONFIG = {
   jinaApiKey: '',
   pocketJsonEndpoint: 'https://pocketjson.pluja.dev',
   pocketJsonApiKey: '',
+  pocketJsonEnabled: true,
   defaultLanguage: '',
   theme: 'system',
   streamingEnabled: true,
@@ -145,6 +146,7 @@ export function encodeConfig() {
     visionModelId: config.visionModelId,
     pocketJsonEndpoint: config.pocketJsonEndpoint,
     pocketJsonApiKey: config.pocketJsonApiKey,
+    pocketJsonEnabled: config.pocketJsonEnabled,
     languages: $state.snapshot(languages),
   };
   return btoa(JSON.stringify(shareable));
@@ -167,6 +169,7 @@ export function importConfig(decoded) {
   config.visionModelId = decoded.visionModelId || '';
   config.pocketJsonEndpoint = decoded.pocketJsonEndpoint || DEFAULT_CONFIG.pocketJsonEndpoint;
   config.pocketJsonApiKey = decoded.pocketJsonApiKey || '';
+  config.pocketJsonEnabled = decoded.pocketJsonEnabled ?? DEFAULT_CONFIG.pocketJsonEnabled;
   saveConfig();
 
   if (decoded.languages && Array.isArray(decoded.languages)) {

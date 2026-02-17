@@ -211,6 +211,28 @@
         <!-- Share Configuration -->
         <section>
           <h3 class="mb-3 text-sm font-semibold text-text">Share Configuration</h3>
+          <div class="mb-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-sm font-semibold text-text">PocketJSON</h4>
+                <p class="text-xs text-text-muted">Use short URLs for large content</p>
+              </div>
+              <button
+                onclick={() => { config.pocketJsonEnabled = !config.pocketJsonEnabled; }}
+                class="relative h-6 w-11 rounded-full transition-colors {config.pocketJsonEnabled ? 'bg-primary' : 'bg-border'}"
+                role="switch"
+                aria-checked={config.pocketJsonEnabled}
+                aria-label="Toggle PocketJSON"
+              >
+                <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform {config.pocketJsonEnabled ? 'translate-x-5' : 'translate-x-0'}"></span>
+              </button>
+            </div>
+            {#if !config.pocketJsonEnabled}
+              <p class="mt-2 text-xs text-warning">
+                Disabled: shares will use long self-contained URLs
+              </p>
+            {/if}
+          </div>
           <div class="space-y-3">
             <div>
               <label for="pj-endpoint" class="mb-1 block text-xs font-medium text-text-secondary">PocketJSON Endpoint</label>

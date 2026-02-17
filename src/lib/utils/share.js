@@ -2,12 +2,16 @@
  * Share utilities.
  * Supports two modes:
  *   1. Self-contained: content compressed and encoded directly in the URL hash
- *   2. PocketJSON: content stored externally (for large content that exceeds URL limits)
+ *   2. PocketJSON: content stored externally (default for longer content)
  */
 
 import { config } from '../stores/config.svelte.js';
 
-// ~8KB is a safe URL length limit across browsers
+// URLs longer than this look uncomfortable in chats/social media
+// ~2000 chars is roughly 1500-1800 bytes of compressed content
+const COMFORTABLE_URL_THRESHOLD = 2000;
+
+// Hard browser limit - some systems truncate beyond this
 const MAX_URL_LENGTH = 8000;
 
 /**
@@ -51,25 +55,38 @@ async function decodeAndDecompress(encoded) {
 }
 
 /**
- * Create a share. Tries self-contained URL first, falls back to PocketJSON.
+ * Create a share. Uses PocketJSON by default for content exceeding comfortable URL length.
+ * Falls back to self-contained URL if PocketJSON is disabled or fails.
  * Returns { url, method } where method is 'inline' or 'pocketjson'.
  */
 export async function createShare(content, source = 'No source') {
   const payload = JSON.stringify({ text: content, source });
 
-  // Try self-contained URL first
+  // If PocketJSON is disabled, always use self-contained
+  if (!config.pocketJsonEnabled) {
+    try {
+      const compressed = await compressAndEncode(payload);
+      const url = `${window.location.origin}${window.location.pathname}#d=${compressed}?share`;
+      return { url, method: 'inline' };
+    } catch (err) {
+      throw new Error(`Self-contained share failed: ${err.message}`);
+    }
+  }
+
+  // Try self-contained for short content, PocketJSON for longer
   try {
     const compressed = await compressAndEncode(payload);
     const url = `${window.location.origin}${window.location.pathname}#d=${compressed}?share`;
 
-    if (url.length <= MAX_URL_LENGTH) {
+    // Use self-contained only if URL is comfortably short
+    if (url.length <= COMFORTABLE_URL_THRESHOLD) {
       return { url, method: 'inline' };
     }
   } catch {
     // CompressionStream not supported or failed, fall through to PocketJSON
   }
 
-  // Fall back to PocketJSON for large content
+  // Use PocketJSON for longer content
   const pjEndpoint = config.pocketJsonEndpoint || 'https://pocketjson.pluja.dev';
   const pjApiKey = config.pocketJsonApiKey;
 
